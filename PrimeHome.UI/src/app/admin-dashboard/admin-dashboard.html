@@ -1,0 +1,995 @@
+<div class="container mt-4 mb-5">
+
+  <!-- ========================================= -->
+  <!-- ADMIN DASHBOARD HEADER -->
+  <!-- ========================================= -->
+
+  <header class="ad-hero">
+    <p class="ad-hero-kicker">Admin workspace</p>
+    <h1>Admin dashboard</h1>
+    <p>Review listings, verify owners and keep the marketplace trustworthy.</p>
+  </header>
+
+  <!-- PLATFORM STATS -->
+  @if (stats(); as st) {
+    <section class="ad-stats" aria-label="Platform statistics">
+      <div><span>Buyers</span><strong>{{ count(st.users, 'Buyer') }}</strong></div>
+      <div><span>Owners</span><strong>{{ count(st.users, 'Owner') }}</strong></div>
+      <div><span>New users (30d)</span><strong>{{ st.newUsers30d }}</strong></div>
+      <div><span>Live listings</span><strong>{{ count(st.listings, 'Approved') }}</strong></div>
+      <div class="ad-attn"><span>Awaiting review</span><strong>{{ count(st.listings, 'Pending') }}</strong></div>
+      <div><span>Inquiries (30d)</span><strong>{{ st.inquiries30d }}</strong></div>
+      <div><span>Visit requests (30d)</span><strong>{{ st.visits30d }}</strong></div>
+      <div [class.ad-attn]="st.openContactRequests > 0"><span>New callbacks</span><strong>{{ st.openContactRequests }}</strong></div>
+    </section>
+    @if (st.topCities.length) {
+      <p class="ad-cities">
+        Top cities:
+        @for (c of st.topCities; track c.city; let last = $last) { <strong>{{ c.city }}</strong> ({{ c.count }}){{ last ? '' : ' · ' }} }
+      </p>
+    }
+  }
+
+
+  <!-- ========================================= -->
+  <!-- NO PROPERTIES -->
+  <!-- ========================================= -->
+
+  <div
+    *ngIf="properties.length === 0"
+    class="text-center text-muted mt-5">
+
+    <h5>
+      No properties found.
+    </h5>
+
+  </div>
+
+
+  <!-- ========================================= -->
+  <!-- PROPERTIES TABLE -->
+  <!-- ========================================= -->
+
+  <div
+    class="table-responsive"
+    *ngIf="properties.length > 0">
+
+    <table class="table table-bordered table-hover align-middle">
+
+      <thead class="table-dark">
+
+        <tr>
+
+          <th>Property ID</th>
+
+          <th>Title</th>
+
+          <th>Type</th>
+
+          <th>Price</th>
+
+          <th>City</th>
+
+          <th>Owner ID</th>
+
+          <th>Status</th>
+
+          <th>Badge</th>
+
+          <th>Action</th>
+
+        </tr>
+
+      </thead>
+
+
+      <tbody>
+
+        <tr
+          *ngFor="let property of properties">
+
+
+          <!-- Property ID -->
+
+          <td>
+
+            {{ property.propertyId }}
+
+          </td>
+
+
+          <!-- Title -->
+
+          <td>
+
+            <strong>
+
+              {{ property.title }}
+
+            </strong>
+
+            @if (duplicateFlags().get(property.propertyId); as matches) {
+              <div class="ad-dup" role="note">
+                ⚠ Possible duplicate:
+                @for (m of matches; track m.propertyId) {
+                  <span>#{{ m.propertyId }} "{{ m.title }}" ({{ m.reason }})</span>
+                }
+              </div>
+            }
+
+          </td>
+
+
+          <!-- Type -->
+
+          <td>
+
+            {{ property.propertyType }}
+
+          </td>
+
+
+          <!-- Price -->
+
+          <td>
+
+            ₹{{ property.price | number }}
+
+          </td>
+
+
+          <!-- City -->
+
+          <td>
+
+            {{ property.city }}
+
+          </td>
+
+
+          <!-- Owner -->
+
+          <td>
+
+            {{ property.ownerId }}
+
+          </td>
+
+
+          <!-- Status -->
+
+          <td>
+
+            <span
+              class="badge"
+              [ngClass]="{
+
+                'bg-warning text-dark':
+                  property.status === 'Pending',
+
+                'bg-success':
+                  property.status === 'Approved',
+
+                'bg-danger':
+                  property.status === 'Rejected'
+
+              }">
+
+              {{ property.status }}
+
+            </span>
+
+          </td>
+
+
+          <!-- ================================= -->
+          <!-- BADGE MANAGEMENT -->
+          <!-- ================================= -->
+
+          <td>
+
+            <div class="badge-management">
+
+              <div class="mb-2">
+
+                <span
+                  *ngIf="property.badge"
+                  class="badge property-admin-badge">
+
+                  {{ property.badge }}
+
+                </span>
+
+
+                <span
+                  *ngIf="!property.badge"
+                  class="text-muted small">
+
+                  No Badge
+
+                </span>
+
+              </div>
+
+
+              <select
+                class="form-select form-select-sm"
+                [value]="property.badge || ''"
+                (change)="
+                  updateBadge(
+                    property,
+                    $any($event.target).value || null
+                  )
+                ">
+
+                <option value="">
+                  No Badge
+                </option>
+
+                <option value="NEW">
+                  NEW
+                </option>
+
+                <option value="FEATURED">
+                  FEATURED
+                </option>
+
+                <option value="HOT PROPERTY">
+                  HOT PROPERTY
+                </option>
+
+                <option value="PRICE DROP">
+                  PRICE DROP
+                </option>
+
+                <option value="PREMIUM">
+                  PREMIUM
+                </option>
+
+                <option value="VERIFIED">
+                  VERIFIED
+                </option>
+
+              </select>
+
+            </div>
+
+          </td>
+
+
+          <!-- ================================= -->
+          <!-- PROPERTY ACTIONS -->
+          <!-- ================================= -->
+
+          <td>
+
+            <div class="d-flex gap-2 flex-wrap">
+
+              <button
+                type="button"
+                class="btn btn-sm btn-success"
+                (click)="approveProperty(property)"
+                [disabled]="property.status !== 'Pending'"
+                [attr.title]="property.status !== 'Pending' ? 'Only listings in review can be approved' : null">
+
+                Approve
+
+              </button>
+
+
+              <button
+                type="button"
+                class="btn btn-sm btn-danger"
+                (click)="rejectProperty(property)"
+                [disabled]="property.status !== 'Pending' && property.status !== 'Approved'">
+
+                {{ property.status === 'Approved' ? 'Take down' : 'Reject' }}
+
+              </button>
+
+
+              <button
+                type="button"
+                class="btn btn-sm"
+                [class.btn-outline-success]="!property.isVerified"
+                [class.btn-success]="property.isVerified"
+                (click)="toggleVerified(property)"
+                [attr.aria-pressed]="!!property.isVerified">
+
+                {{ property.isVerified ? '✓ Verified' : 'Verify' }}
+
+              </button>
+
+            </div>
+
+          </td>
+
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+
+
+  <!-- ====================================================== -->
+  <!-- PREMIUM CALLBACK REQUESTS SECTION -->
+  <!-- ====================================================== -->
+
+  <section class="callback-section">
+
+
+    <!-- ========================================= -->
+    <!-- CALLBACK HEADER -->
+    <!-- ========================================= -->
+
+    <div class="callback-section-header">
+
+      <div class="callback-title-area">
+
+        <div class="callback-eyebrow">
+
+         <ph-icon name="building" /> PRIMEHOMES CUSTOMER SUPPORT
+
+        </div>
+
+
+        <h3 class="callback-section-title">
+
+          Callback Requests
+
+        </h3>
+
+
+        <p class="callback-section-description">
+
+          View and manage callback requests submitted by
+          PrimeHomes visitors and customers.
+
+        </p>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- ========================================= -->
+    <!-- CALLBACK SUMMARY CARDS -->
+    <!-- ========================================= -->
+
+    <div class="row g-4 callback-summary-row">
+
+
+      <!-- TOTAL -->
+
+      <div class="col-xl-3 col-md-6">
+
+        <div class="callback-summary-card">
+
+          <div class="callback-summary-card-content">
+
+            <div class="callback-summary-label">
+
+              TOTAL REQUESTS
+
+            </div>
+
+            <div class="callback-summary-number">
+
+              {{ totalContactRequests }}
+
+            </div>
+
+            <div class="callback-summary-subtitle">
+
+              All customer requests
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- NEW -->
+
+      <div class="col-xl-3 col-md-6">
+
+        <div class="callback-summary-card callback-card-new">
+
+          <div class="callback-summary-card-content">
+
+            <div class="callback-summary-label">
+
+              NEW REQUESTS
+
+            </div>
+
+            <div class="callback-summary-number new">
+
+              {{ newContactRequests }}
+
+            </div>
+
+            <div class="callback-summary-subtitle">
+
+              Waiting for contact
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- CONTACTED -->
+
+      <div class="col-xl-3 col-md-6">
+
+        <div class="callback-summary-card callback-card-contacted">
+
+          <div class="callback-summary-card-content">
+
+            <div class="callback-summary-label">
+
+              CONTACTED
+
+            </div>
+
+            <div class="callback-summary-number contacted">
+
+              {{ contactedContactRequests }}
+
+            </div>
+
+            <div class="callback-summary-subtitle">
+
+              Customer contacted
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- CLOSED -->
+
+      <div class="col-xl-3 col-md-6">
+
+        <div class="callback-summary-card callback-card-closed">
+
+          <div class="callback-summary-card-content">
+
+            <div class="callback-summary-label">
+
+              CLOSED
+
+            </div>
+
+            <div class="callback-summary-number closed">
+
+              {{ closedContactRequests }}
+
+            </div>
+
+            <div class="callback-summary-subtitle">
+
+              Requests completed
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+    </div>
+
+
+
+    <!-- ====================================================== -->
+    <!-- CALLBACK SEARCH & FILTERS -->
+    <!-- ====================================================== -->
+
+    <div class="callback-filters">
+
+      <!-- SEARCH -->
+
+      <div class="callback-filter-group callback-search-filter">
+
+        <label>
+          Search
+        </label>
+
+        <input
+          type="text"
+          class="callback-filter-input"
+          [(ngModel)]="callbackSearchText"
+          (input)="filterContactRequests()"
+          placeholder="Search name, email or phone...">
+
+      </div>
+
+
+      <!-- STATUS -->
+
+      <div class="callback-filter-group">
+
+        <label>
+          Status
+        </label>
+
+        <select
+          class="callback-filter-input"
+          [(ngModel)]="callbackStatusFilter"
+          (change)="filterContactRequests()">
+
+          <option value="">
+            All Status
+          </option>
+
+          <option value="New">
+            New
+          </option>
+
+          <option value="Contacted">
+            Contacted
+          </option>
+
+          <option value="Closed">
+            Closed
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- INTERESTED IN -->
+
+      <div class="callback-filter-group">
+
+        <label>
+          Interested In
+        </label>
+
+        <select
+          class="callback-filter-input"
+          [(ngModel)]="callbackInterestFilter"
+          (change)="filterContactRequests()">
+
+          <option value="">
+            All Interests
+          </option>
+
+          <option value="buy">
+            Buy a Property
+          </option>
+
+          <option value="rent">
+            Rent a Property
+          </option>
+
+          <option value="sell">
+            Sell a Property
+          </option>
+
+          <option value="property">
+            Know More About a Property
+          </option>
+
+          <option value="owner">
+            Talk to an Owner
+          </option>
+
+          <option value="expert">
+            Talk to a PrimeHomes Expert
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- DATE -->
+
+      <div class="callback-filter-group">
+
+        <label>
+          Date
+        </label>
+
+        <input
+          type="date"
+          class="callback-filter-input"
+          [(ngModel)]="callbackDateFilter"
+          (change)="filterContactRequests()">
+
+      </div>
+
+
+      <!-- CLEAR FILTERS -->
+
+      <div class="callback-filter-actions">
+
+        <button
+          type="button"
+          class="clear-callback-filters"
+          (click)="clearContactRequestFilters()">
+
+          Clear Filters
+
+        </button>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- ========================================= -->
+    <!-- CALLBACK TABLE WRAPPER -->
+    <!-- ========================================= -->
+
+    <div class="callback-table-wrapper">
+
+
+      <!-- TABLE HEADER -->
+
+      <div class="callback-table-header">
+
+        <div>
+
+          <h4>
+
+            Customer Callback Requests
+
+          </h4>
+
+          <span>
+
+            Manage customer follow-ups and request status
+
+          </span>
+
+        </div>
+
+
+        <div class="callback-request-count">
+
+          {{ filteredContactRequests.length }}
+
+          <span>
+
+            Requests
+
+          </span>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- ========================================= -->
+      <!-- NO CALLBACK REQUESTS -->
+      <!-- ========================================= -->
+
+      <div
+        *ngIf="contactRequests.length === 0"
+        class="callback-empty-state">
+
+        <div class="callback-empty-icon">
+
+          <ph-icon name="phone" />
+
+        </div>
+
+        <h5>
+
+          No Callback Requests
+
+        </h5>
+
+        <p>
+
+          New customer callback requests will appear here.
+
+        </p>
+
+      </div>
+
+
+
+      <!-- ========================================= -->
+      <!-- NO FILTER RESULTS -->
+      <!-- ========================================= -->
+
+      <div
+        *ngIf="
+          contactRequests.length > 0 &&
+          filteredContactRequests.length === 0
+        "
+        class="callback-empty-state">
+
+        <div class="callback-empty-icon">
+
+          <ph-icon name="search" />
+
+        </div>
+
+        <h5>
+
+          No Matching Requests
+
+        </h5>
+
+        <p>
+
+          No callback requests match your current filters.
+
+        </p>
+
+      </div>
+
+
+
+      <!-- ========================================= -->
+      <!-- CALLBACK TABLE -->
+      <!-- ========================================= -->
+
+      <div
+        class="callback-requests-table"
+        *ngIf="filteredContactRequests.length > 0">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>
+                ID
+              </th>
+
+              <th>
+                Customer
+              </th>
+
+              <th>
+                Email
+              </th>
+
+              <th>
+                Phone
+              </th>
+
+              <th>
+                Interested In
+              </th>
+
+              <th>
+                Message
+              </th>
+
+              <th>
+                Status
+              </th>
+
+              <th>
+                Date
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            <tr
+              *ngFor="let request of filteredContactRequests">
+
+
+              <!-- REQUEST ID -->
+
+              <td class="callback-id">
+
+                #{{ request.contactRequestId }}
+
+              </td>
+
+
+              <!-- CUSTOMER -->
+
+              <td>
+
+                <div class="callback-customer">
+
+                  <div class="callback-customer-icon">
+
+                    {{ request.fullName.charAt(0).toUpperCase() }}
+
+                  </div>
+
+
+                  <div>
+
+                    <strong>
+
+                      {{ request.fullName }}
+
+                    </strong>
+
+                    <small>
+
+                      Customer
+
+                    </small>
+
+                  </div>
+
+                </div>
+
+              </td>
+
+
+              <!-- EMAIL -->
+
+              <td>
+
+                <a
+                  class="callback-contact-link"
+                  [href]="'mailto:' + request.email">
+
+                  {{ request.email }}
+
+                </a>
+
+              </td>
+
+
+              <!-- PHONE -->
+
+              <td>
+
+                <a
+                  class="callback-contact-link"
+                  [href]="'tel:' + request.phoneNumber">
+
+                  {{ request.phoneNumber }}
+
+                </a>
+
+              </td>
+
+
+              <!-- INTERESTED IN -->
+
+              <td>
+
+                <span class="callback-interest-badge">
+
+                  {{ request.interestedIn }}
+
+                </span>
+
+              </td>
+
+
+              <!-- MESSAGE -->
+
+              <td>
+
+                <div class="callback-message">
+
+                  {{ request.message || 'No message provided.' }}
+
+                </div>
+
+              </td>
+
+
+              <!-- STATUS -->
+
+              <td>
+
+                <select
+                  class="callback-status-select"
+                  [value]="request.status"
+                  (change)="
+                    updateContactRequestStatus(
+                      request,
+                      $any($event.target).value
+                    )
+                  ">
+
+                  <option value="New">
+                    New
+                  </option>
+
+                  <option value="Contacted">
+                    Contacted
+                  </option>
+
+                  <option value="Closed">
+                    Closed
+                  </option>
+
+                </select>
+
+              </td>
+
+
+              <!-- DATE -->
+
+              <td>
+
+                <div class="callback-date">
+
+                  {{ request.createdDate | date:'dd MMM yyyy' }}
+
+                  <small>
+
+                    {{ request.createdDate | date:'hh:mm a' }}
+
+                  </small>
+
+                </div>
+
+              </td>
+
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+
+    </div>
+
+  </section>
+
+</div>
+
+<!-- REJECT DIALOG -->
+@if (rejecting) {
+  <div class="ad-scrim" (click)="cancelReject()"></div>
+  <div class="ad-dialog" role="dialog" aria-modal="true" aria-labelledby="ad-reject-title" (keydown.escape)="cancelReject()">
+    <h2 id="ad-reject-title">{{ rejecting.status === 'Approved' ? 'Take down listing' : 'Send back to owner' }}</h2>
+    <p class="ph-hint">"{{ rejecting.title }}". The owner sees this reason in a notification and email, edits the listing, and resubmits.</p>
+
+    <label for="ad-reason" class="form-label mt-2">Reason</label>
+    <textarea id="ad-reason" class="form-control" rows="4" maxlength="500" [(ngModel)]="rejectReason" autofocus placeholder="What should the owner fix?"></textarea>
+
+    <p class="ph-hint mt-2 mb-1">Common reasons:</p>
+    <div class="ad-reasons">
+      @for (r of quickReasons; track r) {
+        <button type="button" (click)="rejectReason = r">{{ r }}</button>
+      }
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 mt-3">
+      <button type="button" class="btn ph-btn-outline" (click)="cancelReject()">Back</button>
+      <button type="button" class="btn btn-danger" [disabled]="rejectReason.trim().length < 5 || isRejecting" (click)="confirmReject()">
+        {{ isRejecting ? 'Sending…' : (rejecting.status === 'Approved' ? 'Take down' : 'Reject with reason') }}
+      </button>
+    </div>
+  </div>
+}

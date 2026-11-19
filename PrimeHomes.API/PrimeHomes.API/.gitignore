@@ -1,0 +1,22 @@
+﻿# Build output
+bin/
+obj/
+publish/
+TestResults/
+
+# IDE files
+.vs/
+*.user
+*.suo
+
+# Local development settings
+appsettings.Development.json
+appsettings.*.local.json
+wwwroot/uploads/*
+# Demo listing photos referenced by database/PrimeHomesDB.sql
+!wwwroot/uploads/ph-*.webp
+
+# Logs and local secrets
+*.log
+*.pfx
+*.p12

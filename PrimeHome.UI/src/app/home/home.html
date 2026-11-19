@@ -1,0 +1,304 @@
+<!-- ============ HERO + TABBED SEARCH ============ -->
+<section class="lp-hero" aria-labelledby="lp-title">
+  <div class="container">
+    <p class="lp-hero-eyebrow">Premium homes · Andhra Pradesh · Telangana · Karnataka</p>
+    <h1 id="lp-title">Find the home <em>you deserve</em>, straight from owners</h1>
+    <p class="lp-hero-sub">Admin-reviewed listings, transparent prices per sq ft, and site visits you can book online. No brokerage.</p>
+
+    <form class="lp-search" (ngSubmit)="search()" role="search" aria-label="Search properties">
+      <div class="lp-tabs" role="tablist" aria-label="What are you looking for">
+        @for (t of tabs; track t.id) {
+          <button type="button" role="tab" [attr.aria-selected]="tab() === t.id" [class.on]="tab() === t.id" (click)="setTab(t.id)">{{ t.label }}</button>
+        }
+        <a routerLink="/add-property" class="lp-tab-post">Post property <span>FREE</span></a>
+      </div>
+
+      <div class="lp-search-row">
+        @if (tab() === 'buy' || tab() === 'rent') {
+          <label class="visually-hidden" for="lp-type">Property type</label>
+          <select id="lp-type" class="lp-type" name="type" [(ngModel)]="residentialType">
+            <option value="">All residential</option>
+            <option value="Apartment">Flat / apartment</option>
+            <option value="Villa">Villa</option>
+            <option value="House">Independent house</option>
+          </select>
+        }
+        <div class="lp-input">
+          <ph-icon name="search" />
+          <label class="visually-hidden" for="lp-q">City, locality or landmark</label>
+          <input id="lp-q" name="q" [(ngModel)]="text" list="lp-suggest" autocomplete="off"
+                 [placeholder]="tab() === 'rent' ? 'Search &quot;2 BHK for rent in Madhapur&quot;' : 'Search city, locality or landmark, e.g. Kondapur, Hyderabad'">
+          <datalist id="lp-suggest">
+            @for (s of suggestions(); track s) { <option [value]="s"></option> }
+          </datalist>
+        </div>
+        <button type="submit" class="lp-go">Search</button>
+      </div>
+    </form>
+
+    <dl class="lp-hero-stats">
+      <div><dt>Live listings</dt><dd>{{ liveTotal() || '—' }}</dd></div>
+      <div><dt>Cities</dt><dd>{{ cities().length || '—' }}</dd></div>
+      <div><dt>Verified</dt><dd>{{ verifiedShare() }}%</dd></div>
+      <div><dt>Brokerage</dt><dd>&#8377;0</dd></div>
+    </dl>
+  </div>
+</section>
+
+<!-- ============ INTENT TILES ============ -->
+<section class="lp-intents" aria-labelledby="lp-intents-title">
+  <div class="container">
+    <p id="lp-intents-title" class="lp-eyebrow lp-center">Get started with exploring real estate options</p>
+    <div class="lp-intent-row">
+      @for (i of intents; track i.label) {
+        @if (i.fragment) {
+          <a class="lp-intent" [href]="'#' + i.fragment">
+            <img [src]="i.image" alt="" loading="lazy"><span>{{ i.label }}</span>
+          </a>
+        } @else {
+          <a class="lp-intent" [routerLink]="i.link" [queryParams]="i.params">
+            <img [src]="i.image" alt="" loading="lazy"><span>{{ i.label }}</span>
+          </a>
+        }
+      }
+    </div>
+  </div>
+</section>
+
+@if (recent().length) {
+  <section class="container lp-section" aria-labelledby="lp-recent">
+    <div class="lp-head"><h2 id="lp-recent">Continue where you left off</h2></div>
+    <div class="lp-grid lp-grid-4">
+      @for (p of recent(); track p.propertyId) { <ph-property-card [property]="p" /> }
+    </div>
+  </section>
+}
+
+<div class="container lp-title-block">
+  <p class="lp-eyebrow lp-center">All property needs, one portal</p>
+  <h2 class="lp-display">Find better places to live, work and invest</h2>
+</div>
+
+<!-- ============ BUY ============ -->
+<section class="container lp-section" aria-labelledby="lp-buy">
+  <div class="lp-band">
+    <img src="/images/lp-buy.webp" alt="Elegant living room with a marble fireplace" loading="lazy">
+    <div>
+      <p class="lp-eyebrow">Buy a home</p>
+      <h2 id="lp-buy">Find, buy &amp; own your dream home</h2>
+      <p>Explore apartments, villas and independent houses with prices per sq ft, verified listings and owners you can contact directly.</p>
+      <a routerLink="/properties" class="btn lp-btn">Explore buying</a>
+    </div>
+  </div>
+
+  <div class="lp-rail-panel">
+    <div class="lp-head">
+      <div><h3>Featured homes for sale</h3><p>Promoted and verified listings first</p></div>
+      <a routerLink="/properties">See all <ph-icon name="chevron-right" [size]="16" /></a>
+    </div>
+    <ng-container *ngTemplateOutlet="railTpl; context: { items: featured() }" />
+  </div>
+</section>
+
+<!-- ============ RENT ============ -->
+<section class="container lp-section" aria-labelledby="lp-rent">
+  <div class="lp-band lp-band-reverse">
+    <img src="/images/lp-rent.webp" alt="Bright furnished bedroom" loading="lazy">
+    <div>
+      <p class="lp-eyebrow">Rent a home</p>
+      <h2 id="lp-rent">Rental homes for everyone</h2>
+      <p>Furnished flats near IT parks, family homes near schools: filter by budget, BHK and furnishing, then book a visit.</p>
+      <a routerLink="/properties" [queryParams]="{ type: 'rent' }" class="btn lp-btn">Explore renting</a>
+    </div>
+  </div>
+
+  @if (rentals().length) {
+    <div class="lp-rail-panel">
+      <div class="lp-head">
+        <div><h3>Homes for rent</h3><p>Newest rentals</p></div>
+        <a routerLink="/properties" [queryParams]="{ type: 'rent' }">See all <ph-icon name="chevron-right" [size]="16" /></a>
+      </div>
+      <ng-container *ngTemplateOutlet="railTpl; context: { items: rentals() }" />
+    </div>
+  }
+</section>
+
+<!-- ============ PROPERTY TYPES ============ -->
+<section class="container lp-section" aria-labelledby="lp-types">
+  <div class="lp-head"><div><h2 id="lp-types">Apartments, villas and more</h2><p>Browse by the kind of home you want</p></div></div>
+  <div class="lp-types">
+    @for (t of propertyTypes; track t.type) {
+      <a class="lp-type-card" [routerLink]="['/properties']" [queryParams]="{ propertyTypes: t.type }">
+        <img [src]="t.image" alt="" loading="lazy">
+        <span><strong>{{ t.label }}</strong>{{ typeCounts().get(t.type) ?? 0 }} live {{ (typeCounts().get(t.type) ?? 0) === 1 ? 'listing' : 'listings' }}</span>
+      </a>
+    }
+  </div>
+</section>
+
+<!-- ============ PLOTS ============ -->
+<section class="container lp-section" aria-labelledby="lp-plots">
+  <div class="lp-band">
+    <img src="/images/lp-plots.webp" alt="New residential plots marked out on open land" loading="lazy">
+    <div>
+      <p class="lp-eyebrow">Plots / land</p>
+      <h2 id="lp-plots">Residential &amp; commercial plots</h2>
+      <p>Build to your plan: compare plot sizes and prices across Andhra Pradesh, Telangana and Karnataka.</p>
+      <a routerLink="/properties" [queryParams]="{ propertyTypes: 'Plot' }" class="btn lp-btn">Explore plots</a>
+    </div>
+  </div>
+</section>
+
+@if (newest().length) {
+  <section class="container lp-section" aria-labelledby="lp-new">
+    <div class="lp-rail-panel">
+      <div class="lp-head">
+        <div><h2 id="lp-new" class="lp-h3">Newly listed</h2><p>Fresh on PrimeHomes this week</p></div>
+        <a routerLink="/properties" [queryParams]="{ sort: 'newest' }">See all <ph-icon name="chevron-right" [size]="16" /></a>
+      </div>
+      <ng-container *ngTemplateOutlet="railTpl; context: { items: newest() }" />
+    </div>
+  </section>
+}
+
+<!-- ============ OWNERS ============ -->
+<section class="lp-owner" aria-labelledby="lp-owner-title">
+  <div class="container lp-band lp-band-reverse">
+    <img src="/images/lp-owner.webp" alt="" loading="lazy">
+    <div>
+      <p class="lp-eyebrow">For owners</p>
+      <h2 id="lp-owner-title">Sell or rent faster at the right price!</h2>
+      <p>List in five short steps. We review it, buyers find it, and you manage inquiries and site visits in one place.</p>
+      <a [routerLink]="isOwner ? '/add-property' : '/register'" class="btn lp-btn lp-btn-gold">Post property, it's FREE</a>
+      <ul class="lp-services">
+        <li><ph-icon name="verified" /> Verified badge after review</li>
+        <li><ph-icon name="eye" /> Views, inquiries and visits per listing</li>
+        <li><ph-icon name="sparkle" /> Price insight against the locality</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CITIES ============ -->
+<section class="container lp-section" aria-labelledby="lp-cities">
+  <div class="lp-head lp-head-center"><div><h2 id="lp-cities" class="lp-display">Explore real estate in popular cities</h2></div></div>
+  <div class="lp-cities">
+    @for (c of cities(); track c.city) {
+      <a class="lp-city" [routerLink]="['/properties']" [queryParams]="{ city: c.city }">
+        @if (cityImage(c.city); as cover) {
+          <img [src]="cover" alt="" loading="lazy">
+        } @else {
+          <span class="lp-city-icon"><ph-icon name="building" [size]="26" /></span>
+        }
+        <span><strong>{{ c.city }}</strong>{{ c.count }} {{ c.count === 1 ? 'property' : 'properties' }}</span>
+      </a>
+    }
+  </div>
+</section>
+
+<!-- ============ TOOLS ============ -->
+<section id="tools" class="container lp-section" aria-labelledby="lp-tools">
+  <div class="lp-head lp-head-center"><div><h2 id="lp-tools" class="lp-display">Plan your purchase</h2><p>Indicative numbers; your bank decides the final terms.</p></div></div>
+
+  <div class="lp-tools">
+    <div class="lp-tool-tabs" role="tablist" aria-label="Calculators">
+      <button type="button" role="tab" [attr.aria-selected]="toolTab() === 'emi'" [class.on]="toolTab() === 'emi'" (click)="toolTab.set('emi')"><ph-icon name="calculator" /> EMI calculator</button>
+      <button type="button" role="tab" [attr.aria-selected]="toolTab() === 'budget'" [class.on]="toolTab() === 'budget'" (click)="toolTab.set('budget')"><ph-icon name="sparkle" /> Budget calculator</button>
+    </div>
+
+    @if (toolTab() === 'emi') {
+      <div class="lp-tool">
+        <div class="lp-tool-inputs">
+          <label for="t-loan">Loan amount <strong>{{ loanAmount | price }}</strong></label>
+          <input id="t-loan" type="range" class="form-range" min="500000" max="50000000" step="100000" [(ngModel)]="loanAmount">
+          <label for="t-rate">Interest rate <strong>{{ rate }}% p.a.</strong></label>
+          <input id="t-rate" type="range" class="form-range" min="6" max="14" step="0.05" [(ngModel)]="rate">
+          <label for="t-years">Tenure <strong>{{ years }} years</strong></label>
+          <input id="t-years" type="range" class="form-range" min="5" max="30" step="1" [(ngModel)]="years">
+        </div>
+        <div class="lp-tool-result" aria-live="polite">
+          <span>Monthly EMI</span>
+          <strong>&#8377;{{ monthlyEmi() | num }}</strong>
+          <dl>
+            <div><dt>Total interest</dt><dd>&#8377;{{ totalInterest() | num }}</dd></div>
+            <div><dt>Total payment</dt><dd>&#8377;{{ loanAmount + totalInterest() | num }}</dd></div>
+          </dl>
+        </div>
+      </div>
+    } @else {
+      <div class="lp-tool">
+        <div class="lp-tool-inputs">
+          <label for="t-income">Monthly take-home income <strong>&#8377;{{ income | num }}</strong></label>
+          <input id="t-income" type="range" class="form-range" min="20000" max="1000000" step="5000" [(ngModel)]="income">
+          <label for="t-existing">Existing EMIs per month <strong>&#8377;{{ existingEmis | num }}</strong></label>
+          <input id="t-existing" type="range" class="form-range" min="0" max="300000" step="1000" [(ngModel)]="existingEmis">
+          <label for="t-rate2">Interest rate <strong>{{ rate }}% p.a.</strong> · Tenure <strong>{{ years }} years</strong></label>
+          <input id="t-rate2" type="range" class="form-range" min="6" max="14" step="0.05" [(ngModel)]="rate" aria-label="Interest rate">
+        </div>
+        <div class="lp-tool-result" aria-live="polite">
+          <span>You can look at homes up to</span>
+          <strong>{{ affordablePrice() ? (affordablePrice() | price) : '—' }}</strong>
+          <dl>
+            <div><dt>Affordable EMI (50% of income)</dt><dd>&#8377;{{ affordableEmi() | num }}</dd></div>
+            <div><dt>Down payment (20%)</dt><dd>{{ affordablePrice() * 0.2 | price }}</dd></div>
+          </dl>
+          <button type="button" class="btn lp-btn w-100" [disabled]="!affordablePrice()" (click)="searchWithinBudget()">See homes in this budget</button>
+        </div>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- ============ WHY ============ -->
+<section class="lp-why" aria-labelledby="lp-why-title">
+  <div class="container">
+    <h2 id="lp-why-title" class="lp-display lp-center">Why choose PrimeHomes</h2>
+    <div class="lp-why-grid">
+      @for (r of reasons; track r.title) {
+        <div class="lp-why-item">
+          <span class="lp-why-icon"><ph-icon [name]="r.icon" [size]="22" /></span>
+          <h3>{{ r.title }}</h3>
+          <p>{{ r.text }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ============ QUICK LINKS ============ -->
+@if (quickLinks().length) {
+  <section class="container lp-section lp-links" aria-labelledby="lp-links-title">
+    <h2 id="lp-links-title" class="lp-h3">Popular searches</h2>
+    <ul>
+      @for (l of quickLinks(); track l.label) {
+        <li><a [routerLink]="['/properties']" [queryParams]="l.params">{{ l.label }}</a></li>
+      }
+    </ul>
+  </section>
+}
+
+<!-- Callback form and assistant load after the page is interactive -->
+@defer (on viewport) {
+  <app-contact-request></app-contact-request>
+} @placeholder {
+  <div style="min-height: 320px"></div>
+}
+
+@defer (on idle) {
+  <app-chatbot></app-chatbot>
+}
+
+<!-- Horizontal listing rail with arrow buttons -->
+<ng-template #railTpl let-items="items">
+  <div class="lp-rail-wrap">
+    <button type="button" class="lp-arrow lp-arrow-l" (click)="scrollRail(rail, -1)" aria-label="Scroll left"><ph-icon name="chevron-left" /></button>
+    <div #rail class="lp-rail" tabindex="0" aria-label="Listings, scroll sideways">
+      @if (loading()) {
+        @for (s of skeletons; track s) { <div class="ph-skeleton lp-skel"></div> }
+      } @else {
+        @for (p of items; track p.propertyId) { <div class="lp-rail-item"><ph-property-card [property]="p" /></div> }
+      }
+    </div>
+    <button type="button" class="lp-arrow lp-arrow-r" (click)="scrollRail(rail, 1)" aria-label="Scroll right"><ph-icon name="chevron-right" /></button>
+  </div>
+</ng-template>

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="PrimeHomes.API.Tests/PrimeHomes.API.Tests.csproj" />
+  <Project Path="PrimeHomes.API/PrimeHomes.API.csproj" />
+</Solution>

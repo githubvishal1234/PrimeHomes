@@ -1,0 +1,326 @@
+<div class="container mt-5 mb-5">
+
+  <!-- Page Header -->
+
+  <header class="ph-banner compare-header" style="--ph-banner-img: url('/images/type-villa.webp')">
+
+    <div>
+      <p class="page-kicker">Make your shortlist clearer</p>
+      <h1>Compare your finalists</h1>
+
+      <p class="mb-0">
+        Compare your selected properties side by side.
+      </p>
+    </div>
+
+    <div
+      *ngIf="compareProperties.length > 0"
+      class="compare-count">
+
+      {{ compareProperties.length }} / 3 Selected
+
+    </div>
+
+  </header>
+
+
+  <!-- Empty Comparison -->
+
+  <div
+    *ngIf="compareProperties.length === 0"
+    class="empty-compare">
+
+    <div class="empty-icon">
+      ⚖
+    </div>
+
+    <h3>
+      No Properties to Compare
+    </h3>
+
+    <p class="text-muted">
+      Select up to 3 properties from the Properties page
+      to compare them side by side.
+    </p>
+
+    <a
+      routerLink="/properties"
+      class="btn btn-primary">
+
+      Browse Properties
+
+    </a>
+
+  </div>
+
+
+  <!-- Comparison Content -->
+
+  <div
+    *ngIf="compareProperties.length > 0"
+    class="comparison-wrapper">
+
+    <!-- Toolbar -->
+
+    <div class="comparison-toolbar">
+
+      <span class="text-muted">
+        Comparing {{ compareProperties.length }} properties
+      </span>
+
+      <button
+        type="button"
+        class="btn btn-outline-danger btn-sm"
+        (click)="clearComparison()">
+
+        Clear Comparison
+
+      </button>
+
+    </div>
+
+
+    <!-- Comparison Table -->
+
+    <div
+      class="table-responsive"
+      tabindex="0"
+      role="region"
+      aria-label="Property comparison table. Scroll horizontally to compare all properties.">
+
+      <table class="table comparison-table" aria-label="Property comparison">
+
+        <!-- Property Header -->
+
+        <thead>
+
+          <tr>
+
+            <th class="feature-column" scope="col">
+              Property Details
+            </th>
+
+            <th
+              *ngFor="let property of compareProperties"
+              class="property-column"
+              scope="col">
+
+              <div class="property-image-container">
+
+                <img
+                  *ngIf="property.imageUrl"
+                  [src]="property.imageUrl"
+                  [alt]="property.title"
+                  class="property-image"
+                  (error)="property.imageUrl = ''">
+                <span *ngIf="!property.imageUrl" class="image-fallback">Property photo unavailable</span>
+
+              </div>
+
+              <h4 class="property-title">
+                {{ property.title }}
+              </h4>
+
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <!-- Comparison Details -->
+
+        <tbody>
+
+          <!-- Price -->
+
+          <tr>
+
+            <th class="feature-name" scope="row">
+              Price
+            </th>
+
+            <td *ngFor="let property of compareProperties">
+
+              <strong class="property-price">
+                ₹{{ property.price | number }}
+              </strong>
+
+            </td>
+
+          </tr>
+
+
+          <!-- Property Type -->
+
+          <tr>
+
+            <th class="feature-name" scope="row">
+              Property type
+            </th>
+
+            <td *ngFor="let property of compareProperties">
+
+              {{ property.propertyType }}
+
+            </td>
+
+          </tr>
+
+
+          <!-- BHK -->
+
+          <tr>
+
+            <th class="feature-name" scope="row">
+              Bedrooms
+            </th>
+
+            <td *ngFor="let property of compareProperties">
+
+              {{ property.bhk }} BHK
+
+            </td>
+
+          </tr>
+
+
+          <!-- Area -->
+
+          <tr>
+
+            <th class="feature-name" scope="row">
+              Area
+            </th>
+
+            <td *ngFor="let property of compareProperties">
+
+              {{ property.area }} Sq.ft
+
+            </td>
+
+          </tr>
+
+
+          <!-- Location -->
+
+          <tr>
+
+            <th class="feature-name" scope="row">
+              Location
+            </th>
+
+            <td *ngFor="let property of compareProperties">
+
+              {{ property.location }}
+
+            </td>
+
+          </tr>
+
+
+          <!-- City -->
+
+          <tr>
+
+            <th class="feature-name" scope="row">
+              City
+            </th>
+
+            <td *ngFor="let property of compareProperties">
+
+              {{ property.city }}
+
+            </td>
+
+          </tr>
+
+
+          <!-- Status -->
+
+          <tr>
+
+            <th class="feature-name" scope="row">
+              Status
+            </th>
+
+            <td *ngFor="let property of compareProperties">
+
+              <span class="property-status">
+                {{ property.status }}
+              </span>
+
+            </td>
+
+          </tr>
+
+
+          <!-- Description -->
+
+          <tr>
+
+            <th class="feature-name" scope="row">
+              Description
+            </th>
+
+            <td *ngFor="let property of compareProperties">
+
+              <div class="description">
+
+                {{ property.description }}
+
+              </div>
+
+            </td>
+
+          </tr>
+
+
+          <!-- Actions -->
+
+          <tr>
+
+            <th class="feature-name" scope="row">
+              Actions
+            </th>
+
+            <td *ngFor="let property of compareProperties">
+
+              <div class="property-actions">
+
+                <a
+                  [routerLink]="[
+                    '/properties',
+                    property.propertyId
+                  ]"
+                  class="btn btn-primary btn-sm">
+
+                  View Details
+
+                </a>
+
+                <button
+                  type="button"
+                  class="btn btn-outline-danger btn-sm"
+                  [attr.aria-label]="'Remove ' + property.title + ' from comparison'"
+                  (click)="removeFromCompare(property.propertyId)">
+
+                  Remove
+
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

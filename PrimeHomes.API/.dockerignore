@@ -1,0 +1,6 @@
+**/bin/
+**/obj/
+.vs/
+**/*.user
+PrimeHomes.API.Tests/
+PrimeHomes.API/wwwroot/uploads/

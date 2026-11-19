@@ -1,0 +1,151 @@
+<div class="notifications-page">
+
+  <div class="container">
+
+    <!-- Header -->
+
+    <div class="ph-banner notifications-header" style="--ph-banner-img: url('/images/lp-hero.webp')">
+
+      <h2>
+        <ph-icon name="bell" /> Notifications
+      </h2>
+
+      <p>
+        Stay updated with your PrimeHomes activities.
+      </p>
+
+    </div>
+
+
+    <!-- Loading -->
+
+    <div
+      *ngIf="isLoading"
+      class="notifications-message">
+
+      Loading notifications...
+
+    </div>
+
+
+    <!-- Notifications -->
+
+    <div
+      *ngIf="!isLoading && notifications.length > 0"
+      class="notification-list">
+
+
+      <div
+        *ngFor="let notification of notifications"
+        class="notification-card"
+        [class.unread]="!notification.isRead"
+        role="button"
+        tabindex="0"
+        [attr.aria-label]="notification.title + (notification.isRead ? ', read notification' : ', unread notification. Activate to mark as read')"
+        (click)="markAsRead(notification)"
+        (keydown.enter)="markAsRead(notification)"
+        (keydown.space)="markAsRead(notification); $event.preventDefault()">
+
+
+        <!-- Icon -->
+
+        <div class="notification-icon">
+
+          <span
+            *ngIf="notification.type === 'Inquiry'">
+
+            <ph-icon name="send" />
+
+          </span>
+
+
+          <span
+            *ngIf="notification.type === 'PropertyApproved'">
+
+            <ph-icon name="check" />
+
+          </span>
+
+
+          <span
+            *ngIf="notification.type === 'PropertyRejected'">
+
+            <ph-icon name="close" />
+
+          </span>
+
+
+          <span
+            *ngIf="
+              notification.type !== 'Inquiry' &&
+              notification.type !== 'PropertyApproved' &&
+              notification.type !== 'PropertyRejected'
+            ">
+
+            <ph-icon name="bell" />
+
+          </span>
+
+        </div>
+
+
+        <!-- Content -->
+
+        <div class="notification-content">
+
+          <h5>
+            {{ notification.title }}
+          </h5>
+
+
+          <p>
+            {{ notification.message }}
+          </p>
+
+
+          <small>
+            {{ getNotificationTime(notification.createdDate) }}
+          </small>
+
+        </div>
+
+
+        <!-- Unread -->
+
+        <div
+          *ngIf="!notification.isRead"
+          class="unread-dot">
+        </div>
+
+
+      </div>
+
+    </div>
+
+
+    <!-- Empty -->
+
+    <div
+      *ngIf="
+        !isLoading &&
+        notifications.length === 0
+      "
+      class="notifications-empty">
+
+      <div class="empty-icon">
+        <ph-icon name="bell" />
+      </div>
+
+      <h4>
+        No Notifications
+      </h4>
+
+      <p>
+        You don't have any notifications yet.
+      </p>
+
+    </div>
+
+  </div>
+
+</div>

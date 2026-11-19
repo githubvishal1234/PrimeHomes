@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API build & tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: PrimeHomes.API
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: dotnet restore PrimeHomes.API.slnx
+      - run: dotnet build PrimeHomes.API.slnx --no-restore -c Release
+      - run: dotnet test PrimeHomes.API.slnx --no-build -c Release --logger "trx;LogFileName=results.trx"
+      - name: Migrations match the model
+        run: |
+          dotnet tool install --global dotnet-ef --version 8.0.*
+          dotnet ef migrations has-pending-model-changes --project PrimeHomes.API/PrimeHomes.API.csproj
+        env:
+          Jwt__SigningKey: ci-only-signing-key-not-a-secret-0123456789
+
+  ui:
+    name: UI tests & production build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: PrimeHome.UI
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: PrimeHome.UI/package-lock.json
+      - run: npm ci
+      - run: npx ng test --watch=false
+      - run: npx ng build --configuration production   # fails if the bundle exceeds its size budget
+
+  docker:
+    name: Docker images build
+    runs-on: ubuntu-latest
+    needs: [api, ui]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t primehomes-api ./PrimeHomes.API
+      - run: docker build -t primehomes-ui ./PrimeHome.UI

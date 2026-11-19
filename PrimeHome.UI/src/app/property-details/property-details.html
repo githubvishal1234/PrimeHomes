@@ -1,0 +1,407 @@
+@if (isLoadingProperty) {
+  <div class="container pd-page">
+    <div class="ph-skeleton" style="height: 2rem; width: 40%; margin-bottom: 1rem"></div>
+    <div class="ph-skeleton" style="height: 420px"></div>
+  </div>
+}
+
+@if (propertyError) {
+  <div class="container pd-page">
+    <div class="ph-panel ph-empty" role="alert">
+      <h1 class="h4">This property isn't available</h1>
+      <p>{{ propertyError }}</p>
+      @if (propertyId > 0) { <button type="button" class="btn ph-btn-primary" (click)="loadProperty()">Try again</button> }
+      <a routerLink="/properties" class="btn ph-btn-outline ms-2">Browse properties</a>
+    </div>
+  </div>
+}
+
+@if (property; as p) {
+<article class="pd-page">
+  <div class="container">
+
+    <!-- BREADCRUMB -->
+    <nav class="pd-crumbs" aria-label="Breadcrumb">
+      <a routerLink="/">Home</a><span aria-hidden="true">›</span>
+      <a routerLink="/properties" [queryParams]="{ city: p.city, type: p.listingType === 'Rent' ? 'rent' : null }">Property in {{ p.city }}</a><span aria-hidden="true">›</span>
+      <a routerLink="/properties" [queryParams]="{ city: p.city, q: p.location, type: p.listingType === 'Rent' ? 'rent' : null }">{{ p.location }}</a><span aria-hidden="true">›</span>
+      <span aria-current="page">{{ headline(p) }}</span>
+    </nav>
+
+    @if (statusNote(p); as note) {
+      <p class="ph-note pd-status" [attr.data-status]="p.status" role="status">
+        <strong>{{ p.status === 'Approved' ? 'Live' : p.status }}.</strong> {{ note }}
+      </p>
+    }
+
+    <!-- HEADER: price | title | actions -->
+    <header class="pd-head">
+      <div class="pd-head-price">
+        <p class="pd-price">{{ p.price | price: p.listingType }}</p>
+        @if (p.listingType !== 'Rent' && pricePerSqft(p)) {
+          <p class="pd-sub">@ &#8377;{{ pricePerSqft(p) | num }} per sq ft · EMI &#8377;{{ monthlyEmi(p) | num }}/mo
+            <button type="button" class="pd-link" (click)="scrollToSection('price')">Details</button></p>
+        }
+      </div>
+      <div class="pd-head-title">
+        <h1>{{ headline(p) }}
+          @if (p.isVerified) { <span class="pd-verified"><ph-icon name="verified" [size]="14" /> Verified</span> }
+        </h1>
+        <p class="pd-sub">{{ p.title }}</p>
+        <p class="pd-sub"><ph-icon name="pin" [size]="14" /> {{ p.location }}, {{ p.city }}</p>
+      </div>
+      <div class="pd-head-actions">
+        <p class="pd-posted">Posted {{ (p.approvedDate || p.createdDate) | date: 'd MMM y' }}</p>
+        <div class="pd-head-buttons">
+          @if (userRole !== 'Owner' && userRole !== 'Admin') {
+            <button type="button" class="pd-icon-btn" [class.on]="shortlist.ids().has(p.propertyId)" [attr.aria-pressed]="shortlist.ids().has(p.propertyId)"
+                    (click)="shortlist.toggle(p.propertyId)" [attr.aria-label]="shortlist.ids().has(p.propertyId) ? 'Remove from shortlist' : 'Shortlist'">
+              <ph-icon name="heart" [filled]="shortlist.ids().has(p.propertyId)" />
+            </button>
+          }
+          <button type="button" class="pd-icon-btn" (click)="share(p)" aria-label="Share this property"><ph-icon name="share" /></button>
+          @if (userRole !== 'Owner' && userRole !== 'Admin') {
+            <button type="button" class="btn pd-cta" (click)="scrollToSection('contact')">Contact owner</button>
+          }
+        </div>
+      </div>
+    </header>
+  </div>
+
+  <!-- STICKY SECTION NAV -->
+  <nav class="pd-tabs" aria-label="Sections of this page">
+    <div class="container pd-tabs-inner">
+      <span class="pd-tabs-mini"><strong>{{ p.price | price: p.listingType }}</strong> {{ headline(p) }}</span>
+      <div class="pd-tabs-links">
+        @for (s of sections; track s.id) {
+          <button type="button" (click)="scrollToSection(s.id)">{{ s.label }}</button>
+        }
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <!-- OVERVIEW: gallery + facts -->
+    <section id="overview" class="pd-card pd-overview-card" aria-label="Overview">
+      <div class="pd-gallery">
+        <div class="pd-main-photo">
+          @if (selectedImageUrl || p.imageUrl) {
+            <img [src]="selectedImageUrl || p.imageUrl" [alt]="p.title" (error)="selectedImageUrl = null; p.imageUrl = ''">
+          } @else {
+            <span class="pd-no-photo"><ph-icon name="camera" [size]="28" /> Photos coming soon</span>
+          }
+          @if (photoCount(p) > 0) { <span class="pd-photo-count"><ph-icon name="camera" [size]="14" /> Photos ({{ photoCount(p) }})</span> }
+          @if (p.constructionStatus) { <span class="pd-photo-tag">{{ p.constructionStatus }}</span> }
+        </div>
+        @if (galleryImages.length) {
+          <div class="pd-thumbs">
+            @if (p.imageUrl) {
+              <button type="button" class="pd-thumb" [class.on]="!selectedImageUrl || selectedImageUrl === p.imageUrl" (click)="selectGalleryImage(p.imageUrl!)">
+                <img [src]="p.imageUrl" alt="Main photo" loading="lazy">
+              </button>
+            }
+            @for (image of galleryImages; track image.propertyImageId) {
+              @if (image.imageUrl) {
+                <div class="pd-thumb-wrap">
+                  <button type="button" class="pd-thumb" [class.on]="selectedImageUrl === image.imageUrl" (click)="selectGalleryImage(image.imageUrl)">
+                    <img [src]="image.imageUrl" [alt]="'Photo of ' + p.title" loading="lazy" (error)="image.imageUrl = ''">
+                  </button>
+                  @if (isPropertyOwner()) {
+                    <button type="button" class="pd-thumb-del" (click)="deleteGalleryImage(image)" aria-label="Delete this photo"><ph-icon name="close" [size]="12" /></button>
+                  }
+                </div>
+              }
+            }
+          </div>
+        }
+      </div>
+
+      <div class="pd-facts">
+        <dl>
+          @for (row of overview(p); track row.label) {
+            <div>
+              <dt><ph-icon [name]="row.icon" [size]="18" /> {{ row.label }}</dt>
+              <dd>{{ row.value }}</dd>
+            </div>
+          }
+          <div>
+            <dt><ph-icon name="pin" [size]="18" /> Address</dt>
+            <dd>{{ p.location }}, {{ p.city }}</dd>
+          </div>
+          @if (totalReviews > 0) {
+            <div>
+              <dt><ph-icon name="star" [size]="18" /> Rating</dt>
+              <dd>{{ averageRating.toFixed(1) }}/5 ({{ totalReviews }})</dd>
+            </div>
+          }
+        </dl>
+        @if (userRole !== 'Owner' && userRole !== 'Admin') {
+          <div class="pd-fact-buttons">
+            <button type="button" class="btn pd-cta-outline" (click)="scrollToSection('contact')"><ph-icon name="send" [size]="16" /> Contact owner</button>
+            <button type="button" class="btn pd-cta" (click)="scrollToSection('contact')"><ph-icon name="calendar" [size]="16" /> Book site visit</button>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- KEY HIGHLIGHTS -->
+    @if (highlights(p).length) {
+      <section class="pd-card pd-highlights" aria-label="Key highlights">
+        <p class="pd-highlights-title"><ph-icon name="sparkle" /> Key highlights</p>
+        <ul>
+          @for (h of highlights(p); track h) { <li><ph-icon name="check" [size]="14" /> {{ h }}</li> }
+        </ul>
+      </section>
+    }
+
+    <!-- MAIN + SIDEBAR -->
+    <div class="pd-layout">
+      <div class="pd-main">
+
+        <section id="about" class="pd-card">
+          <h2>About property</h2>
+          <p class="pd-address"><strong>Address:</strong> {{ p.location }}, {{ p.city }}</p>
+          <p class="pd-description">{{ p.description || 'The owner has not added a description yet.' }}</p>
+        </section>
+
+        <section id="amenities" class="pd-card">
+          <h2>Amenities</h2>
+          @if (getLifestyleFeatures(p.lifestyleFeatures).length) {
+            <ul class="pd-amenities">
+              @for (feature of getLifestyleFeatures(p.lifestyleFeatures); track feature) {
+                <li [title]="getLifestyleDescription(feature)">
+                  <span class="pd-amenity-icon"><ph-icon [name]="amenityIcon(feature)" [size]="22" /></span>
+                  {{ feature }}
+                </li>
+              }
+            </ul>
+            <p class="ph-hint mb-0">Confirm available facilities with the owner.</p>
+          } @else {
+            <p class="ph-hint mb-0">The owner hasn't listed amenities for this property.</p>
+          }
+        </section>
+
+        <section id="price" class="pd-card">
+          <h2>Price insights</h2>
+          @if (insights(); as ins) {
+            <div class="pd-insight" [attr.data-verdict]="ins.verdict">
+              <div class="pd-insight-head">
+                <ph-icon name="sparkle" />
+                <strong>{{ ins.verdict || 'Price per sq ft' }}</strong>
+                @if (ins.comparedWith) { <span class="ph-hint">vs. {{ ins.comparedWith === 'locality' ? p.location : p.city }} average</span> }
+              </div>
+              <dl class="pd-insight-grid">
+                <div><dt>This home</dt><dd>&#8377;{{ ins.pricePerSqft | num }}/sq ft</dd></div>
+                @if (ins.localityAvg) { <div><dt>{{ p.location }} avg ({{ ins.localityCount }})</dt><dd>&#8377;{{ ins.localityAvg | num }}/sq ft</dd></div> }
+                @if (ins.cityAvg) { <div><dt>{{ p.city }} avg ({{ ins.cityCount }})</dt><dd>&#8377;{{ ins.cityAvg | num }}/sq ft</dd></div> }
+              </dl>
+              @if (!ins.verdict) { <p class="ph-hint mb-0">Not enough similar listings nearby to compare yet.</p> }
+            </div>
+          }
+
+          @if (p.listingType !== 'Rent') {
+            <h3 class="pd-h3"><ph-icon name="calculator" /> EMI calculator</h3>
+            <div class="pd-emi-grid">
+              <div class="pd-emi-inputs">
+                <label for="emi-loan">Loan amount <strong>{{ loanPercent }}% · {{ loanAmount(p) | price }}</strong></label>
+                <input id="emi-loan" type="range" min="10" max="90" step="5" class="form-range" [(ngModel)]="loanPercent">
+                <label for="emi-rate">Interest rate <strong>{{ interestRate }}% p.a.</strong></label>
+                <input id="emi-rate" type="range" min="6" max="14" step="0.05" class="form-range" [(ngModel)]="interestRate">
+                <label for="emi-years">Tenure <strong>{{ tenureYears }} years</strong></label>
+                <input id="emi-years" type="range" min="5" max="30" step="1" class="form-range" [(ngModel)]="tenureYears">
+              </div>
+              <div class="pd-emi-result" aria-live="polite">
+                <p class="pd-emi-label">Estimated monthly EMI</p>
+                <p class="pd-emi-value">&#8377;{{ monthlyEmi(p) | num }}</p>
+                <dl>
+                  <div><dt>Principal</dt><dd>&#8377;{{ loanAmount(p) | num }}</dd></div>
+                  <div><dt>Total interest</dt><dd>&#8377;{{ totalInterest(p) | num }}</dd></div>
+                  <div><dt>Down payment</dt><dd>&#8377;{{ p.price - loanAmount(p) | num }}</dd></div>
+                </dl>
+                <p class="ph-hint mb-0">Indicative only; your bank's rate and charges decide the final EMI.</p>
+              </div>
+            </div>
+          }
+        </section>
+
+        <section id="locality" class="pd-card">
+          <h2>Explore {{ p.location }}, {{ p.city }}</h2>
+
+          <p class="pd-h3-small">Places nearby</p>
+          <div class="pd-nearby">
+            <a [href]="getNearbySearchUrl('schools')" target="_blank" rel="noopener noreferrer"><ph-icon name="building" [size]="16" /> Schools &amp; colleges</a>
+            <a [href]="getNearbySearchUrl('hospitals')" target="_blank" rel="noopener noreferrer"><ph-icon name="plus" [size]="16" /> Hospitals</a>
+            <a [href]="getNearbySearchUrl('shopping malls')" target="_blank" rel="noopener noreferrer"><ph-icon name="layers" [size]="16" /> Shopping</a>
+            <a [href]="getNearbySearchUrl('parks')" target="_blank" rel="noopener noreferrer"><ph-icon name="tree" [size]="16" /> Parks</a>
+            <a [href]="getNearbySearchUrl('metro station')" target="_blank" rel="noopener noreferrer"><ph-icon name="map" [size]="16" /> Metro &amp; transit</a>
+          </div>
+
+          @if (p.latitude != null && p.longitude != null) {
+            <div id="property-map" class="property-map pd-map" role="application" aria-label="Map of the property location and route"></div>
+
+            <div class="pd-route">
+              <label for="routeStartLocation" class="form-label">Get directions from</label>
+              <div class="pd-route-row">
+                <input id="routeStartLocation" type="text" class="form-control" name="routeStartLocation" [(ngModel)]="routeStartLocation"
+                       placeholder="e.g. HITEC City, Hyderabad" (keyup.enter)="showRouteToProperty()">
+                <button type="button" class="btn ph-btn-primary" (click)="showRouteToProperty()" [disabled]="isRouteLoading || !routeStartLocation.trim()">
+                  {{ isRouteLoading ? 'Finding route…' : 'Show route' }}
+                </button>
+              </div>
+              @if (routeMessage) { <p class="ph-hint mt-2 mb-0" role="status">{{ routeMessage }}</p> }
+              @if (routeDistance || routeDuration) {
+                <p class="pd-route-result">
+                  @if (routeDistance) { <span><ph-icon name="area" [size]="16" /> {{ routeDistance }}</span> }
+                  @if (routeDuration) { <span><ph-icon name="clock" [size]="16" /> {{ routeDuration }} by car</span> }
+                </p>
+              }
+              <p class="pd-route-links">
+                <a [href]="getGoogleMapsDirectionsUrl()" target="_blank" rel="noopener noreferrer">Open in Google Maps</a> ·
+                <a [href]="getOpenStreetMapDirectionsUrl()" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>
+              </p>
+            </div>
+          } @else {
+            <p class="ph-hint mb-0">The owner hasn't pinned this property on the map yet.</p>
+          }
+        </section>
+
+        <section id="reviews" class="pd-card">
+          <div class="pd-reviews-head">
+            <h2>Reviews</h2>
+            @if (totalReviews > 0) {
+              <span class="pd-rating"><ph-icon name="star" [filled]="true" [size]="16" /> {{ averageRating | number: '1.1-1' }}/5 · {{ totalReviews }} {{ totalReviews === 1 ? 'review' : 'reviews' }}</span>
+            }
+          </div>
+
+          @for (review of reviews; track review.reviewId) {
+            <div class="pd-review">
+              <div class="pd-review-top">
+                <span class="pd-stars" [attr.aria-label]="review.rating + ' out of 5 stars'">{{ getStarDisplay(review.rating) }}</span>
+                <small class="text-muted">{{ review.createdDate | date: 'mediumDate' }}</small>
+              </div>
+              <p class="mb-0">{{ review.comment }}</p>
+            </div>
+          } @empty {
+            <p class="ph-hint">No reviews yet. Buyers who visit can share how it went.</p>
+          }
+
+          @if (isLoggedIn && userRole === 'Buyer') {
+            <form class="pd-review-form" (ngSubmit)="submitReview()" #reviewForm="ngForm">
+              <p class="pd-h3-small">Write a review</p>
+              <div class="pd-review-row">
+                <label class="visually-hidden" for="reviewRating">Your rating</label>
+                <select id="reviewRating" name="reviewRating" class="form-select" [(ngModel)]="reviewRating" required>
+                  <option [ngValue]="5">★★★★★ Excellent</option>
+                  <option [ngValue]="4">★★★★☆ Very good</option>
+                  <option [ngValue]="3">★★★☆☆ Good</option>
+                  <option [ngValue]="2">★★☆☆☆ Fair</option>
+                  <option [ngValue]="1">★☆☆☆☆ Poor</option>
+                </select>
+              </div>
+              <label class="visually-hidden" for="reviewComment">Your review</label>
+              <textarea id="reviewComment" name="reviewComment" class="form-control" rows="3" maxlength="1000" required
+                        [(ngModel)]="reviewComment" placeholder="What did you like? What should others know?"></textarea>
+              <div class="pd-review-foot">
+                <small class="text-muted">{{ reviewComment.length }}/1000</small>
+                <button type="submit" class="btn ph-btn-primary btn-sm" [disabled]="isSubmittingReview || !reviewComment.trim()">
+                  {{ isSubmittingReview ? 'Submitting…' : 'Submit review' }}
+                </button>
+              </div>
+              @if (reviewMessage) { <p class="ph-hint mt-2 mb-0" role="status">{{ reviewMessage }}</p> }
+            </form>
+          } @else if (!isLoggedIn) {
+            <button type="button" class="btn ph-btn-outline btn-sm" (click)="signIn()">Sign in to write a review</button>
+          }
+        </section>
+      </div>
+
+      <!-- SIDEBAR: CONTACT OWNER -->
+      <aside class="pd-side" aria-label="Contact the owner">
+        <section id="contact" class="pd-card pd-contact">
+          <div class="pd-owner">
+            <span class="pd-owner-avatar"><ph-icon name="user" [size]="26" /></span>
+            <div>
+              <p class="pd-owner-label">Posted by owner</p>
+              <p class="pd-owner-name">{{ owner()?.displayName || 'Property owner' }}</p>
+              @if (owner(); as o) {
+                <p class="pd-owner-meta">Member since {{ o.memberSince | date: 'MMM y' }} · {{ o.liveListings }} live {{ o.liveListings === 1 ? 'listing' : 'listings' }}</p>
+              }
+            </div>
+          </div>
+
+          @if (userRole === 'Owner' || userRole === 'Admin') {
+            <p class="ph-hint mb-0">
+              {{ userRole === 'Admin' ? 'Review this listing from the admin dashboard.' : 'Buyers contact you from here. Replies and visits are in your owner space.' }}
+            </p>
+          } @else if (!isLoggedIn) {
+            <p class="pd-contact-text">Sign in to message the owner or book a site visit. The owner's number is shared once a visit is confirmed.</p>
+            <button type="button" class="btn pd-cta w-100" (click)="signIn()">Sign in to contact owner</button>
+          } @else {
+            <p class="pd-h3-small">Send enquiry to owner</p>
+            <label for="inquiryMessage" class="visually-hidden">Your message</label>
+            <textarea id="inquiryMessage" class="form-control" rows="3" name="inquiryMessage" [(ngModel)]="inquiryMessage"
+                      placeholder="I'm interested in this property. Is it still available?"></textarea>
+            <button type="button" class="btn pd-cta w-100 mt-2" (click)="sendInquiry()" [disabled]="!inquiryMessage.trim()">Send enquiry</button>
+
+            <form class="pd-visit" (ngSubmit)="bookVisit()" #visitForm="ngForm">
+              <p class="pd-h3-small"><ph-icon name="calendar" [size]="16" /> Book a site visit</p>
+              <div class="pd-visit-row">
+                <div>
+                  <label for="visitDate" class="form-label">Date</label>
+                  <input id="visitDate" type="date" class="form-control" name="visitDate" [(ngModel)]="visitDate" [min]="minVisitDate" required>
+                </div>
+                <div>
+                  <label for="visitHour" class="form-label">Time</label>
+                  <select id="visitHour" class="form-select" name="visitHour" [(ngModel)]="visitHour">
+                    @for (h of visitHours; track h) { <option [ngValue]="h">{{ h % 12 || 12 }}:00 {{ h < 12 ? 'AM' : 'PM' }}</option> }
+                  </select>
+                </div>
+              </div>
+              <label for="visitNote" class="visually-hidden">Note for the owner</label>
+              <input id="visitNote" class="form-control mt-2" name="visitNote" [(ngModel)]="visitNote" maxlength="500" placeholder="Note for the owner (optional)">
+              <button type="submit" class="btn pd-cta-outline w-100 mt-2" [disabled]="!visitDate || isBookingVisit">
+                {{ isBookingVisit ? 'Sending request…' : 'Request visit' }}
+              </button>
+              <p class="ph-hint mt-2 mb-0">Hourly slots, 9 AM – 6 PM. The owner confirms or suggests another time.</p>
+            </form>
+          }
+        </section>
+      </aside>
+    </div>
+
+    <!-- SIMILAR -->
+    <section id="similar" class="pd-section" aria-labelledby="pd-similar-title">
+      <h2 id="pd-similar-title">Similar properties</h2>
+      @if (similar().length) {
+        <div class="pd-similar">
+          @for (s of similar(); track s.propertyId) { <ph-property-card [property]="s" /> }
+        </div>
+      } @else {
+        <p class="ph-hint">No similar live listings in {{ p.city }} right now. <a routerLink="/properties" [queryParams]="{ city: p.city }">See all in {{ p.city }}</a></p>
+      }
+    </section>
+
+    <!-- RELATED SEARCHES -->
+    <section class="pd-section pd-related" aria-labelledby="pd-related-title">
+      <h2 id="pd-related-title">Related to your search</h2>
+      <div>
+        @for (r of relatedSearches(p); track r.label) {
+          <a [routerLink]="['/properties']" [queryParams]="r.params">{{ r.label }}</a>
+        }
+      </div>
+    </section>
+  </div>
+
+  <!-- PHONE: fixed action bar -->
+  @if (userRole !== 'Owner' && userRole !== 'Admin') {
+    <div class="pd-mobile-bar">
+      <button type="button" class="pd-icon-btn" [class.on]="shortlist.ids().has(p.propertyId)" (click)="shortlist.toggle(p.propertyId)"
+              [attr.aria-label]="shortlist.ids().has(p.propertyId) ? 'Remove from shortlist' : 'Shortlist'">
+        <ph-icon name="heart" [filled]="shortlist.ids().has(p.propertyId)" />
+      </button>
+      <button type="button" class="btn pd-cta flex-grow-1" (click)="scrollToSection('contact')">Contact owner</button>
+    </div>
+  }
+</article>
+}

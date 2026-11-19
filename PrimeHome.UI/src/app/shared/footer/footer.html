@@ -1,0 +1,38 @@
+
+<footer class="ph-footer" [class.ph-footer-compact]="compact">
+  <div class="ph-footer-container">
+
+    <div class="ph-footer-grid">
+      <div class="ph-footer-brand">
+        <h2>Prime<span>Homes</span></h2>
+        <p>Find a place to call home. Discover properties that match your lifestyle and dreams.</p>
+      </div>
+
+      @if (!compact) {
+        <div>
+          <h3 class="ph-footer-heading">Quick Links</h3>
+          <a class="ph-footer-link" routerLink="/">Home</a>
+          <a class="ph-footer-link" routerLink="/properties">Properties</a>
+          <a class="ph-footer-link" routerLink="/contact-request">Contact Us</a>
+        </div>
+
+        <div>
+          <h3 class="ph-footer-heading">Explore Properties</h3>
+          <p>Discover houses, apartments, and villas to suit your needs.</p>
+        </div>
+
+        <div>
+          <h3 class="ph-footer-heading">Get in Touch</h3>
+          <p>Have questions? Our team is here to help you find your dream home.</p>
+      
+          <p>info@primehomes.com</p>
+        </div>
+      }
+    </div>
+
+    <div class="ph-footer-bottom">
+      <p>© {{ currentYear }} PrimeHomes. All rights reserved.</p>
+    </div>
+
+  </div>
+</footer>

@@ -1,0 +1,364 @@
+<main class="property-form-page container py-5">
+  <header class="ph-banner property-form-heading" style="--ph-banner-img: url('/images/tile-sell.webp')">
+    <span class="property-form-eyebrow">{{ isEditMode ? 'Listing details' : 'Seller workspace' }}</span>
+    <h1>{{ isEditMode ? 'Edit Property' : 'Add New Property' }}</h1>
+    <p>Five short steps. You can save a draft at any time and finish later.</p>
+  </header>
+
+  <ol class="wz-steps" aria-label="Listing steps">
+    @for (st of steps; track st.n) {
+      <li>
+        <button type="button" class="wz-step" [class.on]="step === st.n" [class.done]="st.n < step"
+                [disabled]="st.n > maxStep" [attr.aria-current]="step === st.n ? 'step' : null" (click)="goTo(st.n)">
+          <span class="wz-num">{{ st.n < step ? '✓' : st.n }}</span>
+          <span class="wz-label">{{ st.label }}</span>
+        </button>
+      </li>
+    }
+  </ol>
+
+  <div class="wz-quality" aria-live="polite">
+    <span>Listing quality</span>
+    <div class="wz-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="qualityScore()"><span [style.width.%]="qualityScore()"></span></div>
+    <strong>{{ qualityScore() }}%</strong>
+    <small>{{ qualityScore() < 70 ? 'Add photos, floor, facing and amenities to stand out.' : 'Great: complete listings get more inquiries.' }}</small>
+  </div>
+
+  <div class="property-form-card">
+    <form (ngSubmit)="submit()" #propertyForm="ngForm">
+      <section class="form-section" [hidden]="step !== 1" aria-labelledby="property-details-heading">
+        <div class="form-section-heading">
+          <span class="form-section-step">01</span>
+          <div>
+            <h2 id="property-details-heading">Property details</h2>
+            <p>Set the essentials buyers need to know.</p>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-12">
+            <span class="form-label d-block">I want to</span>
+            <div class="wz-seg" role="radiogroup" aria-label="Listing type">
+              <label [class.on]="property.listingType === 'Sale'"><input type="radio" name="listingType" value="Sale" [(ngModel)]="property.listingType"> Sell</label>
+              <label [class.on]="property.listingType === 'Rent'"><input type="radio" name="listingType" value="Rent" [(ngModel)]="property.listingType"> Rent out</label>
+            </div>
+          </div>
+
+          <div class="col-md-7">
+            <label class="form-label" for="property-title">Property Title</label>
+            <input
+              id="property-title"
+              type="text"
+              class="form-control"
+              name="title"
+              [(ngModel)]="property.title"
+              placeholder="Enter property title"
+              required>
+          </div>
+
+          <div class="col-md-5">
+            <label class="form-label" for="property-type">Property Type</label>
+            <select
+              id="property-type"
+              class="form-select"
+              name="propertyType"
+              [(ngModel)]="property.propertyType"
+              required>
+              <option value="">Select Property Type</option>
+              <option value="Apartment">Apartment</option>
+              <option value="Villa">Villa</option>
+              <option value="House">House</option>
+              <option value="Plot">Plot</option>
+              <option value="Commercial">Commercial</option>
+            </select>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label" for="property-description">Description</label>
+            <textarea
+              id="property-description"
+              class="form-control"
+              name="description"
+              [(ngModel)]="property.description"
+              rows="4"
+              placeholder="Enter property description"
+              required></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section" [hidden]="step !== 2" aria-labelledby="property-pricing-heading">
+        <div class="form-section-heading">
+          <span class="form-section-step">02</span>
+          <div>
+            <h2 id="property-pricing-heading">Price &amp; features</h2>
+            <p>Buyers filter on these, so complete details mean more views.</p>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label" for="property-price">{{ property.listingType === 'Rent' ? 'Monthly rent (₹)' : 'Expected price (₹)' }}</label>
+            <input
+              id="property-price"
+              type="number"
+              class="form-control"
+              name="price"
+              [(ngModel)]="property.price"
+              min="0"
+              placeholder="Enter amount in rupees"
+              required>
+            @if (property.price > 0) { <small class="ph-hint">{{ property.price | price: property.listingType }}@if (property.listingType === 'Sale' && property.area > 0) { · ₹{{ property.price / property.area | num }}/sq ft }</small> }
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label" for="property-bhk">BHK</label>
+            <input
+              id="property-bhk"
+              type="number"
+              class="form-control"
+              name="bhk"
+              [(ngModel)]="property.bhk"
+              min="0"
+              placeholder="Enter BHK">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label" for="property-area">Area (Sq. Ft.)</label>
+            <input
+              id="property-area"
+              type="number"
+              class="form-control"
+              name="area"
+              [(ngModel)]="property.area"
+              min="0"
+              placeholder="Enter area">
+          </div>
+
+          <div class="col-6 col-md-3">
+            <label class="form-label" for="p-baths">Bathrooms</label>
+            <input id="p-baths" type="number" class="form-control" name="bathrooms" [(ngModel)]="property.bathrooms" min="0" max="20">
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label" for="p-parking">Covered parking</label>
+            <input id="p-parking" type="number" class="form-control" name="parking" [(ngModel)]="property.parking" min="0" max="50">
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label" for="p-floor">Floor</label>
+            <input id="p-floor" type="number" class="form-control" name="floor" [(ngModel)]="property.floor" min="-3" max="200" placeholder="0 = ground">
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label" for="p-floors">Total floors</label>
+            <input id="p-floors" type="number" class="form-control" name="totalFloors" [(ngModel)]="property.totalFloors" min="0" max="200">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label" for="p-furnishing">Furnishing</label>
+            <select id="p-furnishing" class="form-select" name="furnishing" [(ngModel)]="property.furnishing">
+              <option [ngValue]="null">Select</option>
+              <option value="Unfurnished">Unfurnished</option>
+              <option value="Semi-furnished">Semi-furnished</option>
+              <option value="Furnished">Furnished</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="p-facing">Facing</label>
+            <select id="p-facing" class="form-select" name="facing" [(ngModel)]="property.facing">
+              <option [ngValue]="null">Select</option>
+              @for (f of facings; track f) { <option [value]="f">{{ f }}</option> }
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="p-status">Possession</label>
+            <select id="p-status" class="form-select" name="constructionStatus" [(ngModel)]="property.constructionStatus">
+              <option value="Ready to move">Ready to move</option>
+              <option value="Under construction">Under construction</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="p-age">Property age (years)</label>
+            <input id="p-age" type="number" class="form-control" name="ageYears" [(ngModel)]="property.ageYears" min="0" max="200">
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section" [hidden]="step !== 3" aria-labelledby="property-address-heading">
+        <div class="form-section-heading">
+          <span class="form-section-step">03</span>
+          <div>
+            <h2 id="property-address-heading">Address &amp; amenities</h2>
+            <p>Add the neighborhood and available community facilities.</p>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-7">
+            <label class="form-label" for="property-location">Location</label>
+            <input
+              id="property-location"
+              type="text"
+              class="form-control"
+              name="location"
+              [(ngModel)]="property.location"
+              placeholder="Enter location"
+              required>
+          </div>
+
+          <div class="col-md-5">
+            <label class="form-label" for="property-city">City</label>
+            <input
+              id="property-city"
+              type="text"
+              class="form-control"
+              name="city"
+              [(ngModel)]="property.city"
+              placeholder="Enter city"
+              required>
+          </div>
+        </div>
+
+        <div class="lifestyle-form-section">
+          <div class="subsection-heading">
+            <h3>Lifestyle &amp; Community Features</h3>
+            <p>Select only the facilities available at this property.</p>
+          </div>
+          <div class="row g-2">
+            <div class="col-md-6" *ngFor="let feature of availableLifestyleFeatures">
+              <label class="lifestyle-checkbox-item">
+                <input
+                  type="checkbox"
+                  [checked]="selectedLifestyleFeatures.includes(feature)"
+                  (change)="toggleLifestyleFeature(feature, $event)">
+                <span>{{ feature }}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section" [hidden]="step !== 4" aria-labelledby="property-map-heading">
+        <div class="form-section-heading">
+          <span class="form-section-step">04</span>
+          <div>
+            <h2 id="property-map-heading">Pin the property location</h2>
+            <p>Click on the map to select the exact location. Coordinates update automatically.</p>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label" for="property-latitude">Latitude</label>
+            <input
+              id="property-latitude"
+              type="number"
+              class="form-control"
+              name="latitude"
+              [(ngModel)]="property.latitude"
+              min="-90"
+              max="90"
+              step="any"
+              placeholder="Example: 17.3850">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label" for="property-longitude">Longitude</label>
+            <input
+              id="property-longitude"
+              type="number"
+              class="form-control"
+              name="longitude"
+              [(ngModel)]="property.longitude"
+              min="-180"
+              max="180"
+              step="any"
+              placeholder="Example: 78.4867">
+          </div>
+        </div>
+
+        <div class="map-actions">
+          <button
+            type="button"
+            class="btn btn-outline-primary btn-sm"
+            (click)="showPropertyLocationOnMap()">
+            Show Selected Location
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm"
+            (click)="clearPropertyLocation()">
+            Clear Location
+          </button>
+        </div>
+
+        <div id="owner-property-map" class="property-location-map"></div>
+        <small class="form-hint">You can click the map to place the marker. These coordinates are optional.</small>
+      </section>
+
+      <section class="form-section" [hidden]="step !== 5" aria-labelledby="property-media-heading">
+        <div class="form-section-heading">
+          <span class="form-section-step">05</span>
+          <div>
+            <h2 id="property-media-heading">Property photography</h2>
+            <p>Choose the main image and add additional gallery photos.</p>
+          </div>
+        </div>
+
+        <div class="media-upload-grid">
+          <div class="media-upload-panel">
+            <label class="form-label" for="property-main-image">Main Property Image</label>
+            <input
+              id="property-main-image"
+              type="file"
+              class="form-control"
+              accept="image/*"
+              (change)="onFileSelected($event)">
+
+            <div *ngIf="imagePreview" class="image-preview">
+              <p class="preview-label">Main Image Preview</p>
+              <img [src]="imagePreview" alt="Property Preview" class="main-image-preview">
+            </div>
+          </div>
+
+          <div class="media-upload-panel">
+            <label class="form-label" for="property-gallery-images">Property Gallery Images</label>
+            <input
+              id="property-gallery-images"
+              type="file"
+              class="form-control"
+              accept="image/*"
+              multiple
+              (change)="onGalleryFilesSelected($event)">
+            <small class="form-hint">You can select multiple images for this property.</small>
+
+            <div *ngIf="galleryPreviews.length > 0" class="gallery-preview">
+              <p class="preview-label">Gallery Preview</p>
+              <div class="gallery-preview-grid">
+                <div *ngFor="let image of galleryPreviews">
+                  <img [src]="image" alt="Gallery Image">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="form-submit-bar wz-nav">
+        <button type="button" class="btn ph-btn-outline" (click)="back()" [disabled]="step === 1 || isSaving">Back</button>
+        <span class="wz-spacer"></span>
+        @if (!isEditMode || propertyStatus === 'Draft') {
+          <button type="button" class="btn ph-btn-outline" (click)="saveDraft()" [disabled]="isSaving || !property.title.trim()">Save as draft</button>
+        }
+        @if (step < steps.length) {
+          <button type="button" class="btn ph-btn-primary" (click)="next()">Next</button>
+        } @else {
+          <button type="submit" class="btn ph-btn-primary" [disabled]="isSaving">
+            {{ isSaving ? 'Saving…' : isEditMode && propertyStatus !== 'Draft' ? 'Save changes' : 'Submit for review' }}
+          </button>
+        }
+      </div>
+      @if (isEditMode && propertyStatus === 'Approved') {
+        <p class="ph-hint text-end">Changes to a live listing go back to admin review before buyers see them.</p>
+      }
+    </form>
+  </div>
+</main>

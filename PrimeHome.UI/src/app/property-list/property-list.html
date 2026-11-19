@@ -1,0 +1,260 @@
+<section class="sr">
+  <!-- SEARCH BAR: Buy/Rent + location chips + add more -->
+  <div class="sr-bar">
+    <div class="container">
+      <form class="sr-search" (ngSubmit)="apply()" role="search">
+        <label class="visually-hidden" for="sr-kind">Buy or rent</label>
+        <select id="sr-kind" class="sr-kind" [ngModel]="listingType()" (ngModelChange)="setListingType($event)" name="kind">
+          <option value="Sale">Buy</option>
+          <option value="Rent">Rent</option>
+        </select>
+
+        <div class="sr-q">
+          @if (city) {
+            <span class="sr-loc-chip">{{ city }}
+              <button type="button" (click)="city = ''; localities.clear(); apply()" [attr.aria-label]="'Remove ' + city"><ph-icon name="close" [size]="12" /></button>
+            </span>
+          }
+          @for (l of localities; track l) {
+            <span class="sr-loc-chip">{{ l }}
+              <button type="button" (click)="toggle(localities, l)" [attr.aria-label]="'Remove ' + l"><ph-icon name="close" [size]="12" /></button>
+            </span>
+          }
+          <label class="visually-hidden" for="sr-q">Add locality, landmark or keyword</label>
+          <input id="sr-q" name="q" [(ngModel)]="q" [placeholder]="city || localities.size ? 'Add more…' : 'Enter locality, landmark or keyword'" autocomplete="off">
+        </div>
+
+        @if (!city) {
+          <label class="visually-hidden" for="sr-city">City</label>
+          <select id="sr-city" class="sr-city" name="city" [(ngModel)]="city" (ngModelChange)="localities.clear(); apply()">
+            <option value="">All cities</option>
+            @for (c of cities(); track c.city) { <option [value]="c.city">{{ c.city }}</option> }
+          </select>
+        }
+        <button type="submit" class="sr-go"><ph-icon name="search" /> <span>Search</span></button>
+      </form>
+    </div>
+  </div>
+
+  <div class="container">
+    <nav class="sr-crumbs" aria-label="Breadcrumb">
+      <a routerLink="/">Home</a><span aria-hidden="true">›</span>
+      <a routerLink="/properties" [queryParams]="{ type: listingType() === 'Rent' ? 'rent' : null }">Property for {{ listingType() === 'Rent' ? 'rent' : 'sale' }}</a>
+      @if (city) { <span aria-hidden="true">›</span><span aria-current="page">{{ city }}</span> }
+    </nav>
+  </div>
+
+  <div class="container sr-layout">
+    <!-- FILTERS -->
+    <aside class="sr-filters" [class.open]="filtersOpen()" aria-label="Filters">
+      <div class="sr-filters-head">
+        <h2>Applied filters</h2>
+        <button type="button" class="sr-link" (click)="clearAll()" [disabled]="!appliedFilters().length">Clear all</button>
+        <button type="button" class="sr-close" (click)="filtersOpen.set(false)" aria-label="Close filters"><ph-icon name="close" /></button>
+      </div>
+      @if (appliedFilters().length) {
+        <div class="sr-applied">
+          @for (f of appliedFilters(); track f.label) {
+            <button type="button" class="sr-applied-chip" (click)="f.remove()" [attr.aria-label]="'Remove filter ' + f.label">{{ f.label }} <ph-icon name="close" [size]="12" /></button>
+          }
+        </div>
+      } @else {
+        <p class="sr-none">No filters yet: refine below.</p>
+      }
+
+      <div class="sr-group sr-toggle-row">
+        <label class="sr-switch" for="f-verified">
+          <span><ph-icon name="verified" [size]="16" /> Verified properties</span>
+          <input id="f-verified" type="checkbox" role="switch" [(ngModel)]="verifiedOnly" (ngModelChange)="apply()">
+        </label>
+      </div>
+
+      <fieldset class="sr-group">
+        <legend>Budget</legend>
+        <div class="sr-two">
+          <label class="visually-hidden" for="f-min">Minimum budget</label>
+          <select id="f-min" class="form-select form-select-sm" [(ngModel)]="minPrice" (ngModelChange)="apply()">
+            <option [ngValue]="null">No min</option>
+            @for (b of budgets().slice(1); track b) { <option [ngValue]="b">{{ budgetLabel(b) }}</option> }
+          </select>
+          <label class="visually-hidden" for="f-max">Maximum budget</label>
+          <select id="f-max" class="form-select form-select-sm" [(ngModel)]="maxPrice" (ngModelChange)="apply()">
+            <option [ngValue]="null">No max</option>
+            @for (b of budgets().slice(1); track b) { <option [ngValue]="b">{{ budgetLabel(b) }}</option> }
+          </select>
+        </div>
+      </fieldset>
+
+      <fieldset class="sr-group">
+        <legend>Type of property</legend>
+        <div class="sr-chips">
+          @for (t of propertyTypes; track t) {
+            <button type="button" class="sr-chip" [class.on]="types.has(t)" [attr.aria-pressed]="types.has(t)" (click)="toggle(types, t)">
+              {{ types.has(t) ? '✓' : '+' }} {{ t }}
+            </button>
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="sr-group">
+        <legend>No. of bedrooms</legend>
+        <div class="sr-chips">
+          @for (n of bhkOptions; track n) {
+            <button type="button" class="sr-chip" [class.on]="bhk.has(n)" [attr.aria-pressed]="bhk.has(n)" (click)="toggle(bhk, n)">
+              {{ bhk.has(n) ? '✓' : '+' }} {{ n === 5 ? '5+' : n }} BHK
+            </button>
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="sr-group">
+        <legend>Construction status</legend>
+        <div class="sr-chips">
+          @for (cs of ['Ready to move', 'Under construction']; track cs) {
+            <button type="button" class="sr-chip" [class.on]="constructionStatus === cs" [attr.aria-pressed]="constructionStatus === cs"
+                    (click)="constructionStatus = constructionStatus === cs ? '' : cs; apply()">
+              {{ constructionStatus === cs ? '✓' : '+' }} {{ cs }}
+            </button>
+          }
+        </div>
+      </fieldset>
+
+      @if (localityOptions().length) {
+        <fieldset class="sr-group">
+          <legend>Localities{{ city ? ' in ' + city : '' }}</legend>
+          <div class="sr-checks">
+            @for (l of localityOptions(); track l) {
+              <label class="sr-check"><input type="checkbox" [checked]="localities.has(l)" (change)="toggle(localities, l)"> {{ l }}</label>
+            }
+          </div>
+        </fieldset>
+      }
+
+      <fieldset class="sr-group">
+        <legend>Furnishing</legend>
+        <div class="sr-chips">
+          @for (f of furnishingOptions; track f) {
+            <button type="button" class="sr-chip" [class.on]="furnishing.has(f)" [attr.aria-pressed]="furnishing.has(f)" (click)="toggle(furnishing, f)">
+              {{ furnishing.has(f) ? '✓' : '+' }} {{ f }}
+            </button>
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="sr-group">
+        <legend>Area (sq ft)</legend>
+        <div class="sr-two">
+          <label class="visually-hidden" for="f-amin">Minimum area</label>
+          <input id="f-amin" type="number" min="0" class="form-control form-control-sm" placeholder="No min" [(ngModel)]="minArea" (change)="apply()">
+          <label class="visually-hidden" for="f-amax">Maximum area</label>
+          <input id="f-amax" type="number" min="0" class="form-control form-control-sm" placeholder="No max" [(ngModel)]="maxArea" (change)="apply()">
+        </div>
+      </fieldset>
+
+      <fieldset class="sr-group">
+        <legend>Amenities</legend>
+        <div class="sr-chips">
+          @for (a of amenityOptions; track a) {
+            <button type="button" class="sr-chip" [class.on]="amenities.has(a)" [attr.aria-pressed]="amenities.has(a)" (click)="toggle(amenities, a)">
+              {{ amenities.has(a) ? '✓' : '+' }} {{ a }}
+            </button>
+          }
+        </div>
+      </fieldset>
+
+      <button type="button" class="btn ph-btn-primary w-100 sr-show" (click)="filtersOpen.set(false)">
+        Show {{ result()?.total ?? 0 }} properties
+      </button>
+    </aside>
+    @if (filtersOpen()) { <div class="sr-scrim" (click)="filtersOpen.set(false)"></div> }
+
+    <!-- RESULTS -->
+    <div class="sr-results">
+      <div class="sr-head">
+        <h1 aria-live="polite">
+          @if (loading()) { Searching… } @else {
+            <span class="sr-count">{{ result()?.total ?? 0 }} {{ result()?.total === 1 ? 'result' : 'results' }}</span>
+            <span class="sr-sep" aria-hidden="true">|</span> {{ resultsTitle() }}
+          }
+        </h1>
+        <div class="sr-tools">
+          <button type="button" class="btn btn-sm ph-btn-outline sr-save" (click)="saveSearch()" [attr.aria-label]="'Save search: ' + describeSearch()">
+            <ph-icon name="bell" [size]="16" /> <span>Save search</span>
+          </button>
+          <label class="visually-hidden" for="sr-sort">Sort by</label>
+          <select id="sr-sort" class="form-select form-select-sm sr-sort" [(ngModel)]="sort" (ngModelChange)="apply()">
+            @for (s of sortOptions; track s.value) { <option [value]="s.value">{{ s.label }}</option> }
+          </select>
+          <div class="sr-view" role="group" aria-label="View">
+            <button type="button" [class.on]="view() === 'list'" [attr.aria-pressed]="view() === 'list'" (click)="view.set('list')" aria-label="List view"><ph-icon name="list" /></button>
+            <button type="button" [class.on]="view() === 'map'" [attr.aria-pressed]="view() === 'map'" (click)="view.set('map')" aria-label="Map view"><ph-icon name="map" /></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sr-quick" role="group" aria-label="Quick filters">
+        @for (qf of quickFilters; track qf.id) {
+          <button type="button" class="sr-quick-chip" [class.on]="isQuick(qf.id)" [attr.aria-pressed]="isQuick(qf.id)" (click)="toggleQuick(qf.id)">
+            @if (qf.id === 'verified') { <ph-icon name="verified" [size]="14" /> } {{ qf.label }}
+          </button>
+        }
+      </div>
+
+      @if (view() === 'map') {
+        <div #map class="sr-map" role="region" aria-label="Map of results"></div>
+        <p class="ph-hint">Showing the {{ result()?.items?.length ?? 0 }} properties on this page. Tap a pin for details.</p>
+      }
+
+      @if (error()) {
+        <div class="ph-panel ph-empty" role="alert">
+          <p>{{ error() }}</p>
+          <button type="button" class="btn ph-btn-primary" (click)="apply(page)">Try again</button>
+        </div>
+      } @else if (loading()) {
+        <div class="sr-list">
+          @for (s of skeletons; track s) {
+            <div class="sr-skel"><div class="ph-skeleton sr-skel-img"></div><div class="sr-skel-body"><div class="ph-skeleton" style="height:1.4rem;width:40%"></div><div class="ph-skeleton" style="height:3.2rem"></div><div class="ph-skeleton" style="height:1rem;width:60%"></div></div></div>
+          }
+        </div>
+      } @else if (!result()?.items?.length) {
+        <div class="ph-panel ph-empty">
+          <h2>No properties match these filters</h2>
+          <p>Try a wider budget, another locality, or remove a filter.</p>
+          <button type="button" class="btn ph-btn-primary" (click)="clearFilters()">Clear filters</button>
+        </div>
+      } @else if (view() === 'list') {
+        <div class="sr-list">
+          @for (p of result()!.items; track p.propertyId) {
+            <ph-property-card [property]="p" layout="row" />
+          }
+        </div>
+      }
+
+      @if (!loading() && (result()?.totalPages ?? 0) > 1) {
+        <nav class="sr-pages" aria-label="Pages">
+          <button type="button" class="sr-page" [disabled]="page <= 1" (click)="goToPage(page - 1)" aria-label="Previous page"><ph-icon name="chevron-left" /></button>
+          @for (n of pages(); track n) {
+            <button type="button" class="sr-page" [class.on]="n === page" [attr.aria-current]="n === page ? 'page' : null" (click)="goToPage(n)">{{ n }}</button>
+          }
+          <button type="button" class="sr-page" [disabled]="page >= (result()?.totalPages ?? 1)" (click)="goToPage(page + 1)" aria-label="Next page"><ph-icon name="chevron-right" /></button>
+        </nav>
+        <p class="sr-page-info">Page {{ page }} of {{ result()?.totalPages }}</p>
+      }
+
+      <p class="sr-compare-hint">
+        <ph-icon name="compare" [size]="16" /> Tap compare on up to 3 homes, then open <a routerLink="/compare-properties">Compare</a>.
+      </p>
+    </div>
+  </div>
+
+  <!-- PHONE: Sort | Filter bar -->
+  <div class="sr-mobile-bar">
+    <label class="sr-mobile-sort">
+      <ph-icon name="list" [size]="16" /> <span class="visually-hidden">Sort by</span>
+      <select [(ngModel)]="sort" (ngModelChange)="apply()" aria-label="Sort by">
+        @for (s of sortOptions; track s.value) { <option [value]="s.value">{{ s.label }}</option> }
+      </select>
+    </label>
+    <button type="button" (click)="filtersOpen.set(true)"><ph-icon name="filter" [size]="16" /> Filter @if (activeFilterCount()) { ({{ activeFilterCount() }}) }</button>
+  </div>
+</section>

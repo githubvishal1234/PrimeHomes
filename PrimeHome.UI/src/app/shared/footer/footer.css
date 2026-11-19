@@ -1,0 +1,116 @@
+
+.ph-footer {
+  background: #123d32;
+  color: #f4f7f5;
+  padding: 48px 0 0;
+  margin-top: 0;
+  font-family: inherit;
+}
+
+.ph-footer-container {
+  width: min(1200px, 92%);
+  margin: 0 auto;
+}
+
+.ph-footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1.2fr 1.2fr;
+  gap: 32px;
+  padding-bottom: 36px;
+}
+
+.ph-footer-brand h2 {
+  color: #ffffff;
+  font-size: 27px;
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+
+.ph-footer-brand h2 span {
+  color: #d8b36a;
+}
+
+.ph-footer p {
+  color: #d1ddd8;
+  font-size: 14px;
+  line-height: 1.8;
+  margin: 0 0 12px;
+}
+
+.ph-footer-heading {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 4px 0 18px;
+}
+
+.ph-footer-link {
+  display: block;
+  width: fit-content;
+  color: #d1ddd8;
+  text-decoration: none;
+  font-size: 14px;
+  margin-bottom: 12px;
+  transition: color 0.2s ease;
+}
+
+.ph-footer-link:hover {
+  color: #d8b36a;
+}
+
+.ph-footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 20px 0;
+  text-align: center;
+}
+
+.ph-footer-bottom p {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* Compact footer for dashboards */
+.ph-footer-compact {
+  padding-top: 20px;
+}
+
+.ph-footer-compact .ph-footer-grid {
+  display: block;
+  padding-bottom: 20px;
+}
+
+.ph-footer-compact .ph-footer-brand h2 {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.ph-footer-compact .ph-footer-brand p {
+  margin-bottom: 0;
+}
+
+.ph-footer-compact .ph-footer-bottom {
+  padding: 14px 0;
+}
+
+/* Responsive layout */
+@media (max-width: 900px) {
+  .ph-footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+  }
+}
+
+@media (max-width: 560px) {
+  .ph-footer {
+    padding-top: 32px;
+  }
+
+  .ph-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .ph-footer-container {
+    width: 90%;
+  }
+}

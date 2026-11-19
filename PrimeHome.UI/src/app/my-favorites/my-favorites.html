@@ -1,0 +1,80 @@
+<main class="container favorites-page">
+  <header class="ph-banner favorites-hero" style="--ph-banner-img: url('/images/tile-buy.webp')">
+    <div>
+      <p class="page-kicker">Your personal shortlist</p>
+      <h1>Saved homes</h1>
+      <p class="favorites-intro">All the places you’ve bookmarked, together in one place.</p>
+    </div>
+    <div class="favorites-hero-actions">
+      <div class="favorites-count" aria-label="{{ favorites.length }} saved properties">
+        <span class="count-number">{{ favorites.length }}</span>
+        <span class="count-label">saved {{ favorites.length === 1 ? 'home' : 'homes' }}</span>
+      </div>
+      <a routerLink="/properties" class="btn btn-light">Find more homes <span aria-hidden="true">→</span></a>
+    </div>
+  </header>
+
+  <div *ngIf="loading" class="favorites-loading" role="status" aria-live="polite">
+    <span class="spinner-border text-primary" aria-hidden="true"></span>
+    <p>Gathering your saved homes…</p>
+  </div>
+
+  <div *ngIf="!loading && errorMessage" class="favorites-error" role="alert">
+    <div>
+      <h2>We couldn’t load your saved homes</h2>
+      <p>{{ errorMessage }}</p>
+    </div>
+    <button type="button" class="btn btn-outline-primary" (click)="loadFavorites()">Try again</button>
+  </div>
+
+  <section class="row g-4 favorites-grid" *ngIf="!loading && !errorMessage && favorites.length > 0" aria-label="Favorite properties">
+    <div class="col-lg-4 col-md-6" *ngFor="let favorite of favorites">
+      <article class="card favorite-card h-100">
+        <div class="favorite-image-container">
+          <img
+            *ngIf="favorite.imageUrl"
+            [src]="favorite.imageUrl"
+            class="favorite-image"
+            [alt]="favorite.title"
+            (error)="favorite.imageUrl = ''">
+          <span *ngIf="!favorite.imageUrl" class="image-fallback">Property photo unavailable</span>
+          <span class="favorite-status">{{ favorite.status }}</span>
+          <span class="favorite-heart" aria-hidden="true">♡</span>
+        </div>
+
+        <div class="card-body">
+          <p class="favorite-location"><span aria-hidden="true">⌖</span> {{ favorite.location }}, {{ favorite.city }}</p>
+          <h2 class="card-title">{{ favorite.title }}</h2>
+          <p class="favorite-price">₹{{ favorite.price | number }}</p>
+
+          <div class="favorite-features" aria-label="Property features">
+            <span><span aria-hidden="true">⌂</span> {{ favorite.bhk }} BHK</span>
+            <span><span aria-hidden="true">▧</span> {{ favorite.area }} sq.ft</span>
+            <span>{{ favorite.propertyType }}</span>
+          </div>
+
+          <p class="favorite-description">{{ favorite.description }}</p>
+
+          <div class="favorite-actions">
+            <a [routerLink]="['/properties', favorite.propertyId]" class="btn btn-primary">View details</a>
+            <button
+              type="button"
+              class="btn btn-outline-danger"
+              (click)="removeFavorite(favorite.propertyId)"
+              [attr.aria-label]="'Remove ' + favorite.title + ' from favorites'">
+              Remove
+            </button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section *ngIf="!loading && !errorMessage && favorites.length === 0" class="favorites-empty">
+    <span class="empty-heart" aria-hidden="true">♡</span>
+    <p class="page-kicker">Your shortlist starts here</p>
+    <h2>No saved homes yet</h2>
+    <p>When a property catches your eye, save it here to come back to it later.</p>
+    <a routerLink="/properties" class="btn btn-primary">Explore properties</a>
+  </section>
+</main>

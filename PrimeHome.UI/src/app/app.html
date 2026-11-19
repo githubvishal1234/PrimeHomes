@@ -1,0 +1,312 @@
+<a class="skip-link" href="#main-content">Skip to content</a>
+<nav class="navbar navbar-expand-lg primehomes-navbar" aria-label="Main navigation" (keydown.escape)="closeMenu()">
+
+  <div class="container">
+
+    <a
+      class="navbar-brand primehomes-logo"
+      routerLink="/"
+      aria-label="PrimeHomes home"
+      (click)="closeMenu()">
+      <picture>
+        <source srcset="/images/primehomes-logo-header.webp" type="image/webp">
+        <img src="/images/primehomes-logo-header.png" alt="PrimeHomes" width="190" height="63">
+      </picture>
+    </a>
+
+
+    <!-- ============================= -->
+    <!-- Mobile Menu Button -->
+    <!-- ============================= -->
+
+    <button
+      class="navbar-toggler"
+      type="button"
+      (click)="toggleMenu()"
+      [attr.aria-expanded]="menuOpen"
+      aria-controls="mainNavbar"
+      aria-label="Toggle navigation">
+
+      <span class="navbar-toggler-icon"></span>
+
+    </button>
+
+
+    <!-- ============================= -->
+    <!-- Navigation -->
+    <!-- ============================= -->
+
+    <div
+      class="navbar-collapse"
+      [class.show]="menuOpen"
+      id="mainNavbar">
+
+
+      <div class="navbar-nav ms-auto">
+
+
+        <!-- ============================= -->
+        <!-- Home -->
+        <!-- ============================= -->
+
+        <a
+          class="nav-link"
+          routerLink="/"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMenu()">
+
+          Home
+
+        </a>
+
+
+        <!-- ============================= -->
+        <!-- Properties -->
+        <!-- Logged-in users -->
+        <!-- ============================= -->
+
+        <a
+          class="nav-link"
+          routerLink="/properties"
+          routerLinkActive="active"
+          (click)="closeMenu()">
+
+          Properties
+
+        </a>
+
+
+        <!-- ============================= -->
+        <!-- Login / Register -->
+        <!-- Logged-out users -->
+        <!-- ============================= -->
+
+        <!-- 99acres-style call to action for people who list property -->
+        <a
+          *ngIf="!isLoggedIn() || getUserRole() === 'Owner'"
+          class="ph-post-cta"
+          routerLink="/add-property"
+          (click)="closeMenu()">
+          Post property <span>FREE</span>
+        </a>
+
+        <ng-container *ngIf="!isLoggedIn()">
+
+          <a
+            class="nav-link"
+            routerLink="/login"
+            routerLinkActive="active"
+            (click)="closeMenu()">
+
+            Login
+
+          </a>
+
+
+          <a
+            class="nav-link"
+            routerLink="/register"
+            routerLinkActive="active"
+            (click)="closeMenu()">
+
+            Register
+
+          </a>
+
+        </ng-container>
+
+
+        <!-- ============================= -->
+        <!-- Buyer Navigation -->
+        <!-- ============================= -->
+
+        <!-- ============================= -->
+        <!-- Owner Navigation -->
+        <!-- ============================= -->
+
+        <ng-container
+          *ngIf="isLoggedIn() && getUserRole() === 'Owner'">
+
+
+          <a
+            class="nav-link"
+            routerLink="/owner-dashboard"
+            routerLinkActive="active"
+            (click)="closeMenu()">
+
+            Dashboard
+
+          </a>
+
+
+          <a
+            class="nav-link"
+            routerLink="/my-properties"
+            routerLinkActive="active"
+            (click)="closeMenu()">
+
+            My Properties
+
+          </a>
+
+
+          <a
+            class="nav-link"
+            routerLink="/owner-inquiries"
+            routerLinkActive="active"
+            (click)="closeMenu()">
+
+            My Inquiries
+
+          </a>
+
+
+          <a
+            class="nav-link"
+            routerLink="/site-visits"
+            routerLinkActive="active"
+            (click)="closeMenu()">
+
+            Visit Requests
+
+          </a>
+
+        </ng-container>
+
+
+        <!-- ============================= -->
+        <!-- Admin Navigation -->
+        <!-- ============================= -->
+
+        <ng-container
+          *ngIf="isLoggedIn() && getUserRole() === 'Admin'">
+
+
+          <a
+            class="nav-link"
+            routerLink="/admin-dashboard"
+            routerLinkActive="active"
+            (click)="closeMenu()">
+
+            Admin Dashboard
+
+          </a>
+
+        </ng-container>
+
+
+        <!-- ======================================== -->
+        <!-- Notifications + Profile + Logout -->
+        <!-- Logged-in users -->
+        <!-- ======================================== -->
+
+        <ng-container *ngIf="isLoggedIn()">
+
+
+          <!-- ============================= -->
+          <!-- Notification Bell -->
+          <!-- ============================= -->
+
+          <a
+            class="nav-link notification-nav-link"
+            routerLink="/notifications"
+            routerLinkActive="active"
+            title="Notifications"
+            aria-label="Notifications"
+            (click)="closeMenu()">
+
+
+            <span class="notification-bell">
+
+              <ph-icon name="bell" [size]="20" />
+
+
+              <!-- Unread Count -->
+
+              <span
+                *ngIf="unreadNotificationCount() > 0"
+                class="notification-badge">
+
+                {{ unreadNotificationCount() }}
+
+              </span>
+
+            </span>
+
+          </a>
+
+
+          <!-- ============================= -->
+          <!-- Profile -->
+          <!-- ============================= -->
+
+          <a
+            class="nav-link"
+            routerLink="/profile"
+            routerLinkActive="active"
+            (click)="closeMenu()">
+
+            <ph-icon name="user" [size]="18" /> Profile
+
+          </a>
+
+
+          <!-- ============================= -->
+          <!-- Logout -->
+          <!-- ============================= -->
+
+          <button
+            class="btn btn-outline-light btn-sm ms-2"
+            type="button"
+            (click)="logout()"
+            aria-label="Log out">
+
+            Logout
+
+          </button>
+
+
+        </ng-container>
+
+
+      </div>
+
+    </div>
+
+  </div>
+
+</nav>
+
+<nav
+  *ngIf="isLoggedIn() && getUserRole() === 'Buyer'"
+  class="buyer-workspace-nav"
+  aria-label="Buyer workspace">
+  <div class="container buyer-workspace-inner">
+    <span class="buyer-workspace-label">BUYER SPACE</span>
+    <div class="buyer-workspace-links">
+      <a routerLink="/buyer-dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Overview</a>
+      <a routerLink="/my-favorites" routerLinkActive="active" (click)="closeMenu()">Saved homes</a>
+      <a routerLink="/compare-properties" routerLinkActive="active" (click)="closeMenu()">Compare</a>
+      <a routerLink="/my-inquiries" routerLinkActive="active" (click)="closeMenu()">Inquiries</a>
+      <a routerLink="/site-visits" routerLinkActive="active" (click)="closeMenu()">Visits</a>
+    </div>
+  </div>
+</nav>
+
+<div *ngIf="needsEmailVerification()" class="ph-banner" role="status">
+  <div class="container">
+    <span>Please verify your email to contact owners and publish listings.</span>
+    <button type="button" (click)="resendVerification()">Resend verification email</button>
+  </div>
+</div>
+
+<!-- ============================= -->
+<!-- Page Content -->
+<!-- ============================= -->
+
+<main id="main-content">
+  <router-outlet></router-outlet>
+</main>
+<app-footer [compact]="isDashboardPage()"></app-footer>
+<app-toasts />

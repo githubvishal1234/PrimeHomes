@@ -1,0 +1,6 @@
+{
+  "/api": { "target": "https://localhost:7299", "secure": false, "changeOrigin": true },
+  "/uploads": { "target": "https://localhost:7299", "secure": false, "changeOrigin": true },
+  "/sitemap.xml": { "target": "https://localhost:7299", "secure": false, "changeOrigin": true },
+  "/robots.txt": { "target": "https://localhost:7299", "secure": false, "changeOrigin": true }
+}

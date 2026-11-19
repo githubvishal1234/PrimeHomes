@@ -1,0 +1,375 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+/* 99acres-style header: white, sticky, compact, brand-coloured accents */
+.primehomes-navbar {
+  position: sticky;
+  z-index: 1040;
+  top: 0;
+  min-height: 68px;
+  border: 0;
+  border-bottom: 1px solid var(--ph-border);
+  background: #fff !important;
+  box-shadow: 0 2px 12px rgba(25, 52, 44, .06);
+}
+
+.primehomes-navbar > .container {
+  min-height: 68px;
+}
+
+.primehomes-logo {
+  display: inline-flex;
+  width: 190px;
+  height: 58px;
+  align-items: center;
+  padding: 0 !important;
+  margin-right: 20px;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.primehomes-logo picture { display: block; width: 100%; height: 100%; }
+
+.primehomes-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.navbar-toggler {
+  display: none;
+  width: 44px;
+  height: 42px;
+  border: 1px solid var(--ph-border);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.navbar-toggler:focus {
+  box-shadow: 0 0 0 3px rgba(189, 146, 80, .25);
+}
+
+.navbar-toggler-icon {
+  width: 22px;
+  height: 18px;
+  background-repeat: no-repeat;
+  background-image: linear-gradient(var(--ph-navy), var(--ph-navy)), linear-gradient(var(--ph-navy), var(--ph-navy)), linear-gradient(var(--ph-navy), var(--ph-navy)) !important;
+  background-size: 22px 2px, 22px 2px, 22px 2px !important;
+  background-position: center 2px, center center, center 16px !important;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 2000;
+  top: 8px;
+  left: 8px;
+  transform: translateY(-160%);
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: var(--ph-navy);
+  color: #fff;
+  font-weight: 700;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+  color: #fff;
+}
+
+.navbar-collapse {
+  display: flex;
+  flex-basis: auto;
+  align-items: center;
+}
+
+.navbar-nav {
+  align-items: center;
+  gap: 2px;
+}
+
+.primehomes-navbar .nav-link {
+  position: relative;
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: .35rem;
+  padding: 8px 12px !important;
+  color: var(--ph-text) !important;
+  font-size: .9rem;
+  font-weight: 600;
+  transition: color 160ms ease;
+}
+
+.primehomes-navbar .nav-link:hover,
+.primehomes-navbar .nav-link.active {
+  color: var(--ph-navy) !important;
+}
+
+.primehomes-navbar .navbar-nav > .nav-link.active::after,
+.primehomes-navbar .navbar-nav > .nav-link:hover::after {
+  position: absolute;
+  right: 12px;
+  bottom: 2px;
+  left: 12px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ph-gold);
+  content: '';
+}
+
+.ph-post-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  margin-left: 6px;
+  border: 1px solid var(--ph-navy);
+  border-radius: 8px;
+  padding: 7px 12px;
+  background: #fff;
+  color: var(--ph-navy);
+  font-size: .88rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ph-post-cta:hover,
+.ph-post-cta:focus-visible {
+  background: var(--ph-navy);
+  color: #fff;
+}
+
+.ph-post-cta span {
+  border-radius: 4px;
+  padding: 1px 5px;
+  background: var(--ph-success);
+  color: #fff;
+  font-size: .66rem;
+  letter-spacing: .03em;
+}
+
+.primehomes-navbar .btn-outline-light {
+  min-height: 38px;
+  border: 1px solid var(--ph-border) !important;
+  border-radius: 8px;
+  padding-inline: 14px !important;
+  color: var(--ph-text) !important;
+  font-weight: 650;
+}
+
+.primehomes-navbar .btn-outline-light:hover {
+  border-color: var(--ph-navy) !important;
+  background: var(--ph-navy) !important;
+  color: #fff !important;
+}
+
+.notification-nav-link {
+  justify-content: center;
+  padding: 4px 6px !important;
+}
+
+.notification-bell {
+  position: relative;
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ph-border);
+  border-radius: 50%;
+  color: var(--ph-navy);
+}
+
+.notification-nav-link:hover .notification-bell {
+  background: var(--ph-background);
+}
+
+.notification-nav-link::after {
+  display: none;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  display: flex;
+  min-width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #c0392b;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.buyer-workspace-nav {
+  position: relative;
+  z-index: 10;
+  border-bottom: 1px solid #244d46;
+  background: #173c39;
+  color: #fff;
+}
+
+.buyer-workspace-inner {
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.buyer-workspace-label {
+  flex: 0 0 auto;
+  color: #c9d8cf;
+  font-size: .66rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+
+.buyer-workspace-links {
+  display: flex;
+  min-width: 0;
+  align-items: stretch;
+  align-self: stretch;
+  gap: 8px;
+}
+
+.buyer-workspace-links a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  color: #d9e5df;
+  font-size: .84rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.buyer-workspace-links a:hover,
+.buyer-workspace-links a.active {
+  color: #fff;
+}
+
+.buyer-workspace-links a.active::after {
+  position: absolute;
+  right: 14px;
+  bottom: 0;
+  left: 14px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: #d3ad73;
+  content: '';
+}
+
+@media (max-width: 991.98px) {
+  .navbar-toggler {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .navbar-collapse {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    max-height: calc(100vh - 68px);
+    overflow-y: auto;
+    border-bottom: 1px solid var(--ph-border);
+    background: #fff;
+    box-shadow: 0 18px 24px rgba(25, 52, 44, .12);
+  }
+
+  .navbar-collapse.show {
+    display: block;
+  }
+
+  .navbar-nav {
+    align-items: stretch;
+    padding: 10px max(1.25rem, calc((100vw - 720px) / 2));
+  }
+
+  .primehomes-navbar .nav-link {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px !important;
+    border-radius: 8px;
+  }
+
+  .primehomes-navbar .navbar-nav > .nav-link.active::after,
+  .primehomes-navbar .navbar-nav > .nav-link:hover::after {
+    right: auto;
+    top: 10px;
+    bottom: 10px;
+    left: 0;
+    width: 3px;
+    height: auto;
+  }
+
+  .ph-post-cta {
+    align-self: flex-start;
+    margin: 6px 0 4px 12px;
+  }
+
+  .primehomes-navbar .btn-outline-light {
+    align-self: flex-start;
+    margin: 7px 0 10px 12px !important;
+  }
+
+  .notification-nav-link {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .primehomes-logo {
+    width: 160px;
+    height: 50px;
+  }
+
+  .navbar-nav {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+
+  .buyer-workspace-inner {
+    min-height: 49px;
+    gap: 12px;
+    padding-right: 0;
+    padding-left: 1rem;
+  }
+
+  .buyer-workspace-label {
+    font-size: .59rem;
+  }
+
+  .buyer-workspace-links {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .buyer-workspace-links::-webkit-scrollbar {
+    display: none;
+  }
+
+  .buyer-workspace-links a {
+    padding: 0 10px;
+    font-size: .78rem;
+  }
+
+  .buyer-workspace-links a.active::after {
+    right: 10px;
+    left: 10px;
+  }
+}
+
+
+

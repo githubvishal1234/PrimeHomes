@@ -1,0 +1,102 @@
+<main class="container owner-inquiries-page">
+  <header class="ph-banner owner-inquiries-hero" style="--ph-banner-img: url('/images/lp-owner.webp')">
+    <div>
+      <p class="page-kicker">Build trust through a timely reply</p>
+      <h1>Buyer inquiries</h1>
+      <p>Review messages from buyers and update each conversation as it progresses.</p>
+    </div>
+    <div class="owner-inquiries-count" aria-label="{{ inquiries.length }} buyer inquiries">
+      <span>{{ inquiries.length }}</span>
+      <small>{{ inquiries.length === 1 ? 'inquiry' : 'inquiries' }}</small>
+    </div>
+  </header>
+
+  <section *ngIf="inquiries.length === 0" class="owner-inquiries-empty">
+    <span class="empty-symbol" aria-hidden="true">↗</span>
+    <p class="page-kicker">Your inbox is clear</p>
+    <h2>No inquiries yet</h2>
+    <p>Buyer messages about your property listings will appear here.</p>
+  </section>
+
+  <section *ngIf="inquiries.length > 0" class="owner-inquiry-list">
+    <div class="inquiry-list-heading">
+      <div>
+        <h2>Buyer messages</h2>
+        <p>Reply to buyers here. They get a notification and an email; close the conversation when you're done.</p>
+      </div>
+    </div>
+
+    <div class="owner-inquiries-table-frame">
+      <div class="table-responsive">
+        <table class="table owner-inquiries-table">
+          <caption class="visually-hidden">Buyer messages and their current status</caption>
+          <thead>
+            <tr>
+              <th scope="col">Inquiry</th>
+              <th scope="col">Property</th>
+              <th scope="col">Buyer</th>
+              <th scope="col">Message</th>
+              <th scope="col">Status</th>
+              <th scope="col">Received</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let inquiry of inquiries">
+              <td data-label="Inquiry"><span class="inquiry-reference">#{{ inquiry.inquiryId }}</span></td>
+              <td data-label="Property">
+                <strong>{{ inquiry.propertyTitle }}</strong>
+                <small class="property-reference">Property ID {{ inquiry.propertyId }}</small>
+              </td>
+              <td data-label="Buyer">{{ inquiry.buyerName || ('Buyer #' + inquiry.buyerId) }}</td>
+              <td data-label="Message" class="buyer-message">
+                {{ inquiry.message }}
+                <p *ngIf="inquiry.ownerReply" class="owner-reply"><strong>Your reply:</strong> {{ inquiry.ownerReply }}</p>
+                <form *ngIf="replyingTo === inquiry.inquiryId" class="reply-form" (ngSubmit)="sendReply(inquiry)">
+                  <label class="visually-hidden" [for]="'reply-' + inquiry.inquiryId">Reply to buyer</label>
+                  <textarea [id]="'reply-' + inquiry.inquiryId" class="form-control" rows="3" name="reply" [(ngModel)]="replyText" maxlength="1000" placeholder="Share availability, price details or your phone number…"></textarea>
+                  <div class="d-flex gap-2 mt-2">
+                    <button type="submit" class="btn btn-sm ph-btn-primary" [disabled]="!replyText.trim() || isSending">{{ isSending ? 'Sending…' : 'Send reply' }}</button>
+                    <button type="button" class="btn btn-sm ph-btn-outline" (click)="replyingTo = null">Back</button>
+                  </div>
+                </form>
+              </td>
+              <td data-label="Status">
+                <span
+                  class="owner-inquiry-status"
+                  [ngClass]="{
+                    'status-new': inquiry.status === 'New',
+                    'status-contacted': inquiry.status === 'Viewed' || inquiry.status === 'Responded',
+                    'status-closed': inquiry.status === 'Closed'
+                  }">
+                  {{ inquiry.status }}
+                </span>
+              </td>
+              <td data-label="Received">{{ inquiry.createdDate | date:'dd-MM-yyyy hh:mm a' }}</td>
+              <td data-label="Update status">
+                <div class="inquiry-actions">
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary"
+                    *ngIf="inquiry.status !== 'Closed'"
+                    (click)="startReply(inquiry)"
+                    [attr.aria-label]="'Reply to inquiry ' + inquiry.inquiryId">
+                    {{ inquiry.ownerReply ? 'Edit reply' : 'Reply' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-success"
+                    *ngIf="inquiry.status !== 'Closed'"
+                    (click)="updateStatus(inquiry, 'Closed')"
+                    [attr.aria-label]="'Mark inquiry ' + inquiry.inquiryId + ' as closed'">
+                    Closed
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>

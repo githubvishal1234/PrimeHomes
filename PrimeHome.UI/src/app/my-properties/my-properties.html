@@ -1,0 +1,88 @@
+<section class="ph-page mp">
+  <header class="ph-banner mp-head" style="--ph-banner-img: url('/images/lp-owner.webp')">
+    <div>
+      <p class="ph-eyebrow">Owner space</p>
+      <h1>My properties</h1>
+      <p class="ph-lead">Track each listing from draft to sold, and see how buyers respond.</p>
+    </div>
+    <a routerLink="/add-property" class="btn ph-btn-primary mp-add"><ph-icon name="plus" /> Post a property</a>
+  </header>
+
+  <div class="mp-tabs" role="tablist" aria-label="Filter by status">
+    @for (t of tabs; track t.id) {
+      <button type="button" role="tab" [attr.aria-selected]="tab() === t.id" [class.on]="tab() === t.id" (click)="tab.set(t.id)">
+        {{ t.label }} <span>{{ count(t) }}</span>
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    @for (i of [1, 2]; track i) { <div class="ph-skeleton mp-skel"></div> }
+  } @else if (error()) {
+    <div class="ph-panel ph-empty" role="alert">
+      <p>{{ error() }}</p>
+      <button type="button" class="btn ph-btn-primary" (click)="load()">Try again</button>
+    </div>
+  } @else if (!visible().length) {
+    <div class="ph-panel ph-empty">
+      <h2>{{ properties().length ? 'Nothing here' : 'No listings yet' }}</h2>
+      <p>{{ properties().length ? 'No listings with this status.' : 'Post your first property: it takes about five minutes.' }}</p>
+      @if (!properties().length) { <a routerLink="/add-property" class="btn ph-btn-primary">Post a property</a> }
+    </div>
+  } @else {
+    <div class="mp-list">
+      @for (p of visible(); track p.propertyId) {
+        @let s = stats().get(p.propertyId);
+        <article class="ph-panel mp-item">
+          <img class="mp-img" [src]="p.imageUrl || '/images/house.jpg'" alt="" loading="lazy">
+
+          <div class="mp-body">
+            <div class="mp-top">
+              <div>
+                <a class="mp-title" [routerLink]="['/properties', p.propertyId]">{{ p.title }}</a>
+                <p class="mp-meta">
+                  {{ p.price ? (p.price | price: p.listingType) : 'Price not set' }} ·
+                  {{ p.location || 'Locality not set' }}{{ p.city ? ', ' + p.city : '' }}
+                </p>
+              </div>
+              <span class="ph-status" [attr.data-status]="p.status">{{ statusLabel(p.status) }}</span>
+            </div>
+
+            @if (p.status === 'Rejected' && p.rejectReason) {
+              <p class="ph-note ph-note-error mp-note"><strong>Reviewer:</strong> {{ p.rejectReason }}</p>
+            }
+            @if (p.status === 'Expired') {
+              <p class="ph-note ph-note-error mp-note">Hidden after 90 days without updates. Renew to send it back to review.</p>
+            }
+
+            <ul class="mp-stats" aria-label="Listing activity">
+              <li><ph-icon name="eye" [size]="15" /> {{ (s?.viewCount ?? p.viewCount ?? 0) | num }} views</li>
+              <li><ph-icon name="send" [size]="15" /> {{ s?.inquiries ?? 0 }} inquiries @if (s?.newInquiries) { <b>({{ s?.newInquiries }} new)</b> }</li>
+              <li><ph-icon name="calendar" [size]="15" /> {{ s?.visits ?? 0 }} visits</li>
+              <li><ph-icon name="heart" [size]="15" /> {{ s?.shortlists ?? 0 }} shortlisted</li>
+              <li class="mp-date">Updated {{ (p.updatedDate || p.createdDate) | date: 'd MMM y' }}</li>
+            </ul>
+
+            <div class="ph-actions">
+              @if (p.status !== 'Sold' && p.status !== 'Rented') {
+                <button type="button" class="btn btn-sm ph-btn-outline" (click)="edit(p)"><ph-icon name="edit" [size]="15" /> Edit</button>
+              }
+              @if (p.status === 'Draft' || p.status === 'Rejected') {
+                <button type="button" class="btn btn-sm ph-btn-primary" [disabled]="busyId() === p.propertyId" (click)="submit(p)">Submit for review</button>
+              }
+              @if (p.status === 'Expired') {
+                <button type="button" class="btn btn-sm ph-btn-primary" [disabled]="busyId() === p.propertyId" (click)="submit(p)">Renew listing</button>
+              }
+              @if (p.status === 'Approved') {
+                <button type="button" class="btn btn-sm ph-btn-primary" [disabled]="busyId() === p.propertyId" (click)="close(p)">
+                  Mark {{ p.listingType === 'Rent' ? 'rented' : 'sold' }}
+                </button>
+              }
+              <button type="button" class="btn btn-sm ph-btn-danger-ghost" [disabled]="busyId() === p.propertyId" (click)="remove(p)"><ph-icon name="trash" [size]="15" /> Delete</button>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>
